@@ -223,6 +223,7 @@
         var heads = qa('.elementor-heading-title').filter(function (t) {
           if (t.closest('[data-id="' + CFG.numbersListId + '"]')) return false;   // строки 01-05 — не сюда
           if (t.closest('.e-loop-item')) return false;   // заголовки карточек статей — не секционные
+          if (t.closest('.marquee, .swiper, .scroll-container-parent')) return false;   // бегущая строка/слайдеры — не заголовки секций
           if (t.children.length > 1) return false;
           var txt = t.textContent.trim();
           return txt.length > 8 && txt.length < 140 && !/^\d+$/.test(txt);
