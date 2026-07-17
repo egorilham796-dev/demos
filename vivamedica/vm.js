@@ -767,12 +767,11 @@
   }
 
   /* ============================================================
-     Панель (только с ?panel / #panel в URL)
+     Панель тумблеров — видна всегда (демо для выбора набора клиенткой).
+     Спрятать можно ?nopanel в URL (для будущей чистовой сборки без панели).
      ============================================================ */
   function buildPanel() {
-    /* локально панель всегда; на публичном URL (Pages для клиентки) — только с ?panel */
-    var isLocal = /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(location.hostname);
-    if (!isLocal && !/[?#&]panel/.test(location.search + location.hash)) return;
+    if (/[?#&]nopanel/.test(location.search + location.hash)) return;
     var p = el('div', null, { id: 'vm-panel' });
     if (matchMedia('(max-width: 767px)').matches) p.classList.add('closed');
     var head = el('div', 'vm-p-head');
