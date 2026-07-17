@@ -1,16 +1,19 @@
 /* ============================================================
-   VivaMedica · vm — универсальная система декоративных анимаций
-   «Линия пути»: волны, обводка карточек, пунктирный маршрут,
-   кольца иконок, кубики, световые акценты. Ваниль CSS/SVG.
+   VivaMedica · vm v5 — стили модульной системы анимаций.
+   JS-инжектируемый декор живёт, пока собран его модуль;
+   CSS-поведения (hover) включаются классом html.vm-m-<key>.
+   Прорисовки «при первом появлении» ключуются классом .vm-seen,
+   который ставит собственный IntersectionObserver модуля —
+   модули не зависят друг от друга.
    ============================================================ */
 :root {
-  --vm-ink: #10432d;        /* тёмный зелёный сайта (измерен) */
-  --vm-accent: #32dbbe;     /* мятный акцент */
-  --vm-soft: #eef3ed;       /* светлая подложка сайта */
+  --vm-ink: #10432d;
+  --vm-accent: #32dbbe;
+  --vm-soft: #eef3ed;
   --vm-line-w: 1.6px;
 }
 
-/* ---------- базовый reveal ---------- */
+/* ---------- reveal блоков ---------- */
 html.vm-on .vm-rv {
   opacity: 0;
   transform: translateY(22px);
@@ -18,31 +21,188 @@ html.vm-on .vm-rv {
 }
 html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
 
-/* ---------- подчёркивание заголовков секций ---------- */
-.vm-hline {
+/* ---------- заголовки: выезд из маски + линия ---------- */
+.vm-mask { display: block; overflow: hidden; }
+.vm-mask-in {
   display: block;
-  width: 88px;
-  height: 3px;
-  margin-top: 10px;
-  border-radius: 3px;
+  transform: translateY(112%);
+  transition: transform .85s cubic-bezier(.22,1,.36,1);
+}
+.vm-seen .vm-mask-in, .vm-seen.vm-mask .vm-mask-in { transform: none; }
+/* волнистое подчёркивание (порт из fable): база рисуется один раз, блик бегает */
+.vm-squig { display: block; width: 96px; height: 12px; margin-top: 8px; }
+.vm-squig.c { margin-left: auto; margin-right: auto; }
+.vm-squig svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.vm-squig .q-draw {
+  fill: none;
+  stroke: var(--vm-ink);
+  stroke-opacity: .8;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 1s cubic-bezier(.22,1,.36,1) .4s;
+}
+.vm-seen .vm-squig .q-draw { stroke-dashoffset: 0; }
+/* в тёмном блоке тёмная линия не читается — светлая */
+[data-id="5a1034bc"] .vm-squig .q-draw { stroke: var(--vm-soft); stroke-opacity: .55; }
+.vm-squig .q-spark {
+  fill: none;
+  stroke: var(--vm-accent);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 12 88;
+  stroke-dashoffset: 12;
+  opacity: 0;
+  transition: opacity .5s 1.5s;
+  animation: vm-flow100 7s linear infinite;
+}
+.vm-seen .vm-squig .q-spark { opacity: .95; }
+/* полный цикл по pathLength=100: от 12 до -88 ровно 100 — без скачка на стыке */
+@keyframes vm-flow100 { to { stroke-dashoffset: -88; } }
+
+/* ---------- hover-набор карточек (html.vm-m-hover) ---------- */
+html.vm-m-hover .feature-card,
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item,
+html.vm-m-hover .panel {
+  transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s cubic-bezier(.22,1,.36,1);
+}
+html.vm-m-hover .feature-card:hover,
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 40px -18px rgba(16, 67, 45, .35);
+}
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item .elementor-widget-image,
+html.vm-m-hover .panel .elementor-widget-image {
+  overflow: hidden;
+  border-radius: inherit;
+}
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item img,
+html.vm-m-hover .panel img {
+  transition: transform .6s cubic-bezier(.22,1,.36,1);
+}
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item:hover img,
+html.vm-m-hover .panel:hover img { transform: scale(1.05); }
+/* press-feedback на кнопках; transition кнопки НЕ переопределяем —
+   у button1 (кнопка статей) свой hover-механизм в index.html, ломать его нельзя */
+html.vm-m-hover .elementor-button:active { transform: scale(.97); }
+/* текстовые ссылки карточек: бегущее подчёркивание.
+   :not(.e-con) — ссылка-обёртка всей карточки не текст, ей линия не положена */
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item a:not(.elementor-button):not(.e-con) {
+  background-image: linear-gradient(90deg, var(--vm-accent), var(--vm-accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 2px;
+  transition: background-size .4s cubic-bezier(.22,1,.36,1);
+}
+html.vm-m-hover [data-id="6acd534e"] .e-loop-item a:not(.elementor-button):not(.e-con):hover { background-size: 100% 2px; }
+
+/* ---------- лента услуг (pin): вход + живой центр ---------- */
+.vm-pin {
+  opacity: 0;
+  transform: translateY(26px) scale(.965);
+  transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1);
+}
+.vm-seen .vm-pin { opacity: 1; transform: none; }
+/* после входа транзишн ускоряется — скролл-значения скользят без лага */
+.vm-pin.vm-pin-live {
+  transition: opacity .22s ease-out, transform .22s ease-out;
+  will-change: transform;
+}
+
+/* ---------- Stärken: квиз-карточки (тап — раскрытие) ---------- */
+.vm-quiz {
+  cursor: pointer;
+  transition: transform .45s cubic-bezier(.34,1.56,.64,1), box-shadow .45s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+.vm-quiz:active { transform: scale(.97); }
+.vm-quiz:focus-visible { outline: 2px solid var(--vm-accent); outline-offset: 4px; }
+.feature-card.vm-quiz.vm-open,
+html.vm-m-hover .feature-card.vm-quiz.vm-open:hover {
+  transform: scale(1.09);
+  z-index: 5;
+  box-shadow: 0 26px 60px -22px rgba(16, 67, 45, .45);
+}
+.feature-card.vm-quiz.vm-dim { transform: scale(.96); opacity: .55; }
+.vm-quiz.vm-open .vm-icon-arc circle { stroke-dashoffset: 0; }
+.vm-quiz.vm-open .vm-icon > svg:not(.vm-icon-arc) { transform: scale(1.12); }
+.vm-tilt { transition: transform .6s cubic-bezier(.22,1,.36,1); }
+
+/* ---------- тёмный блок: текст проявляется скроллом ---------- */
+.vm-w { opacity: .28; transition: opacity .25s ease-out; }
+.vm-w.lit { opacity: 1; }
+
+/* ---------- фото входят шторкой ---------- */
+.vm-curtain {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path .9s cubic-bezier(.22,1,.36,1);
+}
+.vm-curtain.r { clip-path: inset(0 0 0 100%); }
+.vm-curtain-host.vm-seen .vm-curtain,
+.vm-curtain-host.vm-seen .vm-curtain.r { clip-path: inset(0 0 0 0); }
+
+/* ---------- список 01-05 ---------- */
+.vm-row {
+  opacity: 0;
+  transform: translateX(-16px);
+  transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1),
+              background-color .3s, padding-left .3s;
+}
+.vm-row.vm-seen { opacity: 1; transform: none; }
+.vm-rowline .elementor-divider-separator {
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform .9s cubic-bezier(.22,1,.36,1) .15s;
-  background: linear-gradient(90deg, var(--vm-ink) 0%, var(--vm-accent) 45%, var(--vm-ink) 90%);
-  background-size: 250% 100%;
-  animation: vm-hline-flow 6s linear infinite;
+  transition: transform .9s cubic-bezier(.22,1,.36,1);
 }
-.is-visible .vm-hline, .vm-hline.is-visible { transform: scaleX(1); }
-.vm-hline.c { margin-left: auto; margin-right: auto; transform-origin: center; }
-@keyframes vm-hline-flow { to { background-position: -250% 0; } }
+.vm-rowline.vm-seen .elementor-divider-separator { transform: scaleX(1); }
+html.vm-m-hover .vm-row:hover {
+  background: linear-gradient(90deg, rgba(50, 219, 190, .10), rgba(50, 219, 190, 0) 70%);
+  padding-left: 8px;
+  border-radius: 8px;
+}
 
-/* ---------- волнистые линии (lines-waves) ---------- */
+/* ---------- иконки Stärken ---------- */
+.vm-icon > svg:not(.vm-icon-arc), .vm-icon .e-font-icon-svg {
+  transform: scale(.6) rotate(-8deg);
+  opacity: 0;
+  transition: transform .7s cubic-bezier(.34,1.4,.44,1), opacity .5s;
+}
+.vm-seen .vm-icon > svg:not(.vm-icon-arc), .vm-seen .vm-icon .e-font-icon-svg {
+  transform: none;
+  opacity: 1;
+}
+.vm-icon-arc {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  overflow: visible;
+}
+.vm-icon-arc circle {
+  fill: none;
+  stroke: var(--vm-accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 72 28;
+  stroke-dashoffset: 72;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transform-box: fill-box;
+  transition: stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1) .25s;
+}
+.vm-seen .vm-icon-arc circle { stroke-dashoffset: 10; }
+html.vm-m-hover .feature-card:hover .vm-icon > svg:not(.vm-icon-arc) { transform: scale(1.06) rotate(2deg); }
+
+/* ---------- волны ---------- */
 .vm-waves {
   position: absolute;
   left: 0; right: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
+  /* видны только у кромки — не лезут под текст */
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 42%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 42%, transparent 100%);
 }
 .vm-waves svg { display: block; width: 100%; height: 100%; }
 .vm-waves path {
@@ -56,7 +216,7 @@ html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
 .vm-wave-g.w3 { animation-duration: 34s; }
 @keyframes vm-wave-x { from { transform: translateX(0); } to { transform: translateX(-1440px); } }
 
-/* ---------- обводка карточек (линия вокруг блока) ---------- */
+/* ---------- обводка карточек ---------- */
 .vm-border-host { position: relative; }
 .vm-border {
   position: absolute;
@@ -76,7 +236,7 @@ html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
   stroke-dashoffset: 100;
   transition: stroke-dashoffset 1.7s cubic-bezier(.4,0,.2,1) .1s;
 }
-.vm-border-host.is-visible .vm-border .vm-draw { stroke-dashoffset: 0; }
+.vm-border-host.vm-seen .vm-border .vm-draw { stroke-dashoffset: 0; }
 .vm-border .vm-spark {
   stroke: var(--vm-accent);
   stroke-width: 2.4;
@@ -87,46 +247,56 @@ html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
   transition: opacity .5s 1.6s;
   animation: vm-spark 8s linear infinite;
 }
-.vm-border-host.is-visible .vm-border .vm-spark { opacity: .95; }
+.vm-border-host.vm-seen .vm-border .vm-spark { opacity: .95; }
 @keyframes vm-spark { to { stroke-dashoffset: -86; } }
+/* вне вьюпорта вечный блик стоит на паузе (IO ставит .vm-off) */
+.vm-border-host.vm-off .vm-border .vm-spark { animation-play-state: paused; }
 
-/* ---------- пунктирный маршрут между секциями ---------- */
-#vm-route {
+/* ---------- свечения (radial-градиент, без filter — дёшево и на мобиле; порт из fable) ---------- */
+.vm-glow {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(50, 219, 190, .30) 0%,
+    rgba(50, 219, 190, .14) 38%,
+    rgba(50, 219, 190, .04) 58%,
+    rgba(50, 219, 190, 0) 72%);
+  animation: vm-breathe 10s ease-in-out infinite;
 }
-.vm-route-seg { position: absolute; width: 26px; margin-left: -13px; }
-.vm-route-seg svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.vm-route-seg line {
-  stroke: var(--vm-ink);
-  stroke-opacity: .5;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-dasharray: .1 11;
-  animation: vm-route-flow 3.4s linear infinite;
-}
-@keyframes vm-route-flow { to { stroke-dashoffset: -22.2; } }
-.vm-route-seg circle.n {
-  fill: var(--vm-accent);
-  stroke: none;
-}
-.vm-route-seg circle.p {
-  fill: none;
-  stroke: var(--vm-accent);
-  stroke-width: 1.6;
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: vm-pulse 2.6s ease-out infinite;
-}
-@keyframes vm-pulse {
-  0% { transform: scale(.45); opacity: .9; }
-  70%, 100% { transform: scale(1.9); opacity: 0; }
+@keyframes vm-breathe {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.14); }
 }
 
-/* ---------- кольца вокруг иконок (circle-cycle) ---------- */
+/* ---------- луч света в тёмном блоке ---------- */
+.vm-beam-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+.vm-beam {
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 46%;
+  height: 140%;
+  background: linear-gradient(90deg, transparent, rgba(50, 219, 190, .13) 45%, rgba(238, 243, 237, .09) 55%, transparent);
+  filter: blur(28px);
+  transform: rotate(16deg) translateX(-70%);
+  animation: vm-beam 16s ease-in-out infinite alternate;
+}
+@keyframes vm-beam {
+  to { transform: rotate(16deg) translateX(240%); }
+}
+/* z-index-фикс живёт только пока модуль darklight включён */
+html.vm-m-darklight [data-id="5a1034bc"] > .e-con-inner { position: relative; z-index: 1; }
+
+/* ---------- кольца вокруг цифр ---------- */
 .vm-ring-host { position: relative; }
 .vm-ring {
   position: absolute;
@@ -156,46 +326,43 @@ html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
   transform-origin: center;
   transform-box: fill-box;
 }
-.is-visible .vm-ring .r-arc, .vm-ring.is-visible .r-arc { stroke-dashoffset: 8; }
+.vm-ring-host.vm-seen .vm-ring .r-arc { stroke-dashoffset: 8; }
 @keyframes vm-ring-spin { to { transform: rotate(360deg); } }
+/* hover строки: дуга дорисовывается до полного круга */
+html.vm-m-hover .vm-row:hover .vm-ring .r-arc { stroke-dashoffset: 0; }
 
-/* ---------- изометрические кубики (multi-cube) ---------- */
-.vm-cubes {
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
+/* ---------- фигуры по секциям (порт из fable) ---------- */
+.vm-shape { position: absolute; pointer-events: none; z-index: 0; }
+.vm-shape svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.vm-shape .sh-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.vm-shape .sh-ring {
+  animation: vm-slow-spin 56s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
 }
-.vm-cube { position: absolute; animation: vm-float 9s ease-in-out infinite; }
-.vm-cube.c2 { animation-duration: 12s; animation-delay: -3s; }
-.vm-cube.c3 { animation-duration: 10s; animation-delay: -6s; }
-@keyframes vm-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(4deg); }
+@keyframes vm-slow-spin { to { transform: rotate(360deg); } }
+/* float на child-svg, а transform бокса свободен под параллакс-глубину */
+.vm-shape.sh-float svg { animation: vm-drift 11s ease-in-out infinite; }
+@keyframes vm-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
+/* дуги и пульс-линия рисуются при появлении */
+.vm-shape .sh-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 1.3s cubic-bezier(.22,1,.36,1);
+}
+.vm-shape.vm-seen .sh-draw { stroke-dashoffset: 0; }
 
-/* ---------- световые акценты (glow) ---------- */
-.vm-glow {
-  position: absolute;
-  pointer-events: none;
-  z-index: 0;
-  border-radius: 50%;
-  filter: blur(52px);
-  background: radial-gradient(circle, rgba(50, 219, 190, .30) 0%, rgba(50, 219, 190, 0) 68%);
-  animation: vm-breathe 10s ease-in-out infinite;
-}
-@keyframes vm-breathe {
-  0%, 100% { opacity: .55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.14); }
-}
-
-/* ---------- стрелка у CTA-кнопок (arrow-line) ---------- */
+/* ---------- стрелки CTA: по умолчанию статичны, нудж только на hover ---------- */
 .vm-arr {
   display: inline-block;
   margin-left: 9px;
   vertical-align: middle;
   line-height: 0;
-  animation: vm-nudge 2.4s ease-in-out infinite;
 }
+html.vm-m-hover .elementor-button:hover .vm-arr { animation: vm-nudge 1.2s ease-in-out infinite; }
 .vm-arr svg { display: block; }
 .vm-arr .a-line {
   stroke: currentColor;
@@ -208,23 +375,150 @@ html.vm-on .vm-rv.is-visible { opacity: 1; transform: none; }
   50% { transform: translateX(5px); opacity: 1; }
 }
 
+/* ---------- WhatsApp: пульс ---------- */
+.vm-wa-icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--vm-accent);
+  opacity: 0;
+  animation: vm-wa-pulse 4.5s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes vm-wa-pulse {
+  0%, 74% { transform: scale(.7); opacity: 0; }
+  78% { opacity: .9; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* ---------- футер ---------- */
+/* короткий центрированный акцент вместо палки во всю ширину */
+.vm-footline {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 120px;
+  margin-left: -60px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--vm-accent) 30%, var(--vm-accent) 70%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 1.4s cubic-bezier(.22,1,.36,1);
+  z-index: 2;
+}
+.vm-foot.vm-seen .vm-footline { transform: scaleX(1); }
+/* подчёркивания ссылок футера — часть hover-модуля, от footline не зависят */
+html.vm-m-hover footer.elementor-location-footer a {
+  background-image: linear-gradient(90deg, var(--vm-accent), var(--vm-accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1.5px;
+  transition: background-size .35s cubic-bezier(.22,1,.36,1);
+}
+html.vm-m-hover footer.elementor-location-footer a:hover { background-size: 100% 1.5px; }
+
 /* ---------- параллакс ---------- */
 .vm-para { will-change: transform; }
 
-/* ---------- адаптив ---------- */
+/* ---------- панель тумблеров (только ?panel) ---------- */
+#vm-panel {
+  position: fixed;
+  left: 18px; bottom: 18px;
+  z-index: 99999;
+  width: 272px;
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 67, 45, .18);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px -12px rgba(16, 67, 45, .35);
+  font: 12.5px/1.45 'Inter Tight', system-ui, sans-serif;
+  color: #10432d;
+  overflow: hidden;
+}
+#vm-panel .vm-p-head {
+  padding: 10px 14px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  cursor: pointer;
+  background: linear-gradient(90deg, rgba(50, 219, 190, .16), transparent);
+  user-select: none;
+}
+#vm-panel .vm-p-head::after { content: ' —'; opacity: .5; }
+#vm-panel.closed .vm-p-head::after { content: ' +'; }
+#vm-panel.closed .vm-p-body { display: none; }
+#vm-panel .vm-p-body { padding: 4px 8px 10px; max-height: 62vh; overflow: auto; }
+#vm-panel .vm-p-gtitle {
+  margin: 8px 6px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .55;
+}
+#vm-panel .vm-p-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+#vm-panel .vm-p-row:hover { background: rgba(50, 219, 190, .12); }
+#vm-panel .vm-p-row input { accent-color: #10432d; margin: 0; }
+#vm-panel .vm-p-tools { display: flex; gap: 6px; padding: 8px 6px 2px; }
+#vm-panel .vm-p-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 11.5px;
+  color: #10432d;
+  background: #eef3ed;
+  border: 1px solid rgba(16, 67, 45, .2);
+  border-radius: 8px;
+  cursor: pointer;
+}
+#vm-panel .vm-p-btn:hover { background: rgba(50, 219, 190, .2); }
+
+/* ---------- адаптив: мобиле — draw-once, вечные paint-циклы только с планшета ---------- */
 @media (max-width: 767px) {
-  #vm-route, .vm-cubes { display: none; }
+  .vm-ring { display: none !important; }        /* кольца лезут на текст в стакнутых строках (страховка к JS-гейту) */
+  .vm-border .vm-spark { display: none; }       /* блик обводки — самый дорогой paint-цикл */
+  .vm-squig .q-spark { display: none; }         /* волнистая линия рисуется и замирает */
+  .vm-beam-wrap { display: none; }              /* луч: blur-слой (страховка к JS-гейту) */
   .vm-waves { opacity: .7; }
   html.vm-on .vm-rv { transform: translateY(14px); }
+  #vm-panel { width: 232px; left: 10px; bottom: 10px; }
 }
+
+/* мобильная гигиена: родной декор сайта (SVG 780px и виджеты за краем)
+   раздувает документ вширь; clip не создаёт скролл-контейнер и не ломает sticky */
+html.vm-on { overflow-x: clip; }
 
 /* ---------- reduced motion: всё видно, ничего не движется ---------- */
 @media (prefers-reduced-motion: reduce) {
-  html.vm-on .vm-rv { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .vm-hline { transform: scaleX(1); animation: none; }
-  .vm-wave-g, .vm-cube, .vm-glow, .vm-arr,
-  .vm-border .vm-spark, .vm-route-seg line, .vm-route-seg circle.p,
-  .vm-ring .r-dash { animation: none !important; }
+  /* глушим и родные цикл-анимации темы (floatTilt, bg-float, marquee):
+     мгновенный прыжок в конечный кадр вместо движения */
+  html.vm-on *, html.vm-on *::before, html.vm-on *::after {
+    animation-duration: .01s !important;
+    animation-iteration-count: 1 !important;
+  }
+  html.vm-on .vm-rv, .vm-pin, .vm-row { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .vm-w { opacity: 1; transition: none; }
+  .vm-curtain { clip-path: none !important; transition: none; }
+  .vm-beam { animation: none; opacity: 0; }
+  .vm-quiz, .vm-tilt { transition: none; }
+  .vm-mask-in { transform: none !important; transition: none !important; }
+  .vm-rowline .elementor-divider-separator { transform: scaleX(1); transition: none; }
+  .vm-icon > svg, .vm-icon .e-font-icon-svg { transform: none !important; opacity: 1 !important; }
+  .vm-wave-g, .vm-glow, .vm-arr,
+  .vm-border .vm-spark, .vm-squig .q-spark,
+  .vm-shape.sh-float svg, .vm-shape .sh-ring,
+  .vm-ring .r-dash, .vm-wa-icon::after { animation: none !important; }
   .vm-border .vm-draw { stroke-dashoffset: 0; transition: none; }
+  .vm-squig .q-draw, .vm-shape .sh-draw { stroke-dashoffset: 0; transition: none; }
+  .vm-squig .q-spark, .vm-border .vm-spark { opacity: 0 !important; }
   .vm-ring .r-arc { stroke-dashoffset: 8; transition: none; }
+  .vm-icon-arc circle { stroke-dashoffset: 10; transition: none; }
+  .vm-footline { transform: scaleX(1); transition: none; }
 }
