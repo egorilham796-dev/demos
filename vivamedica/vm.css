@@ -264,23 +264,7 @@ html.vm-m-darklight [data-id="5a1034bc"] > .e-con-inner { position: relative; z-
 #vm-wirbel .wb-v.w-done { opacity: 1; transform: none; }
 #vm-wirbel .wb-v.w-click { pointer-events: auto; cursor: pointer; }
 #vm-wirbel.slim { right: 4px; gap: 7px; }
-
-/* ---------- pagespine (v9, тест): «позвоночник» из лого, по центру, во всю высоту ---------- */
-#vm-pagespine { position: fixed; left: 50%; top: 0; height: 100vh; z-index: 3; pointer-events: none; transform: translateX(-50%); }
-#vm-pagespine .ps-chain { display: block; height: 100vh; overflow: visible; animation: ps-breathe 9s ease-in-out infinite; transform-origin: 50% 50%; }
-#vm-pagespine .ps-chain path { transition: fill .55s ease, fill-opacity .55s ease; }
-#vm-pagespine .ps-ghost { fill: none; stroke: #9fb4a1; stroke-opacity: .22; stroke-width: 2; }
-#vm-pagespine .ps-draw { fill: none; stroke: #32dbbe; stroke-opacity: .85; stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(50,219,190,.5)); transition: stroke-dashoffset .18s linear; }
-#vm-pagespine .ps-marker { position: absolute; left: 50%; top: 0; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #32dbbe; box-shadow: 0 0 0 7px rgba(50,219,190,.14), 0 0 26px 6px rgba(50,219,190,.6); will-change: transform; }
 @keyframes ps-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-html.vm-m-pagespine #vm-wirbel { display: none; }
-@media (prefers-reduced-motion: reduce) {
-  #vm-pagespine .ps-chain { animation: none; }
-  #vm-pagespine .ps-chain path { transition: none; }
-}
-
-/* ---------- тёмный блок: анатомический хребет (сборка) ---------- */
-html.vm-m-anatspine .vm-darkwave { display: none; }
 .vm-anatspine-box { position: absolute; left: 5%; top: 11%; height: 78%; z-index: 0; pointer-events: none; }
 .vm-anatspine { display: block; height: 100%; overflow: visible; }
 .vm-anatspine .as-seg {
@@ -299,85 +283,6 @@ html.vm-m-anatspine .vm-darkwave { display: none; }
 @keyframes as-pulse { 0%, 100% { transform: none; } 45% { transform: scale(1.17); } }
 @media (max-width: 767px) { .vm-anatspine-box { left: 2%; top: 14%; height: 62%; opacity: .82; } }
 @media (prefers-reduced-motion: reduce) { .vm-anatspine .as-seg { transition: none; } .vm-anatspine-box.as-wave .as-seg { animation: none; } }
-
-/* ---------- сигнатурная секция-хребет (v10, правка вёрстки) ---------- */
-.vm-spinestage { position: relative; width: 100%; box-sizing: border-box; background: radial-gradient(120% 90% at 18% 45%, rgba(18,80,54,.6) 0%, transparent 60%), #10432d; overflow: hidden; }
-.vm-spinestage .ss-inner { max-width: 1240px; margin: 0 auto; padding: 96px 72px; display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 48px; box-sizing: border-box; }
-.vm-spinestage .ss-spine { position: relative; height: 520px; display: flex; align-items: center; justify-content: center; }
-.vm-spinestage .ss-svg { height: 100%; overflow: visible; filter: drop-shadow(0 0 26px rgba(50,219,190,.18)); }
-.vm-spinestage .ss-body { fill: #eef3ed; fill-opacity: .94; }
-.vm-spinestage .ss-wing { fill: #32dbbe; fill-opacity: .8; }
-.vm-spinestage .ss-disc { fill: #32dbbe; fill-opacity: .16; }
-.vm-spinestage .ss-seg { opacity: 0; transform: scale(.6); transform-box: fill-box; transform-origin: 50% 50%; transition: opacity .5s ease, transform .6s cubic-bezier(.34,1.56,.64,1); }
-.vm-spinestage .ss-seg.on { opacity: 1; transform: none; }
-.vm-spinestage .ss-node { position: absolute; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #32dbbe; box-shadow: 0 0 0 6px rgba(50,219,190,.16), 0 0 22px rgba(50,219,190,.7); opacity: 0; transition: top .15s linear, opacity .3s; }
-.vm-spinestage .ss-copy { color: #eef3ed; opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1); }
-.vm-spinestage.ss-in .ss-copy { opacity: 1; transform: none; }
-.vm-spinestage .ss-kick { font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; color: #32dbbe; font-weight: 600; margin: 0 0 18px; }
-.vm-spinestage .ss-head { font-size: clamp(34px, 4vw, 54px); line-height: 1.04; font-weight: 800; letter-spacing: -.02em; margin: 0; color: #fff; text-wrap: pretty; }
-.vm-spinestage .ss-head em { font-style: normal; color: #32dbbe; }
-.vm-spinestage .ss-sub { font-size: 17px; line-height: 1.55; color: #b9d2c3; max-width: 460px; margin: 22px 0 32px; }
-.vm-spinestage .ss-cta { display: inline-flex; align-items: center; gap: 10px; background: #32dbbe; color: #10432d; font-weight: 700; font-size: 15px; padding: 14px 24px; border-radius: 9px; text-decoration: none; transition: transform .2s, box-shadow .2s; }
-.vm-spinestage .ss-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -10px rgba(50,219,190,.5); }
-.vm-spinestage .ss-cta svg { width: 16px; height: 16px; }
-@media (max-width: 900px) {
-  .vm-spinestage .ss-inner { grid-template-columns: 1fr; padding: 64px 24px; gap: 24px; }
-  .vm-spinestage .ss-spine { height: 300px; order: -1; }
-}
-@media (prefers-reduced-motion: reduce) { .vm-spinestage .ss-seg, .vm-spinestage .ss-copy, .vm-spinestage .ss-node { transition: none; } }
-
-/* ---------- хребет-прогресс в правом поле (v11→путь 1, по позвонку на блок) ---------- */
-html.vm-m-sitespine #vm-wirbel { display: none; }
-#vm-sitespine { position: fixed; right: 0; top: 0; height: 100vh; z-index: 4; pointer-events: none; overflow: hidden; }
-#vm-sitespine .st-track, #vm-sitespine .st-fill { position: absolute; left: 50%; width: 2px; margin-left: -1px; top: 0; border-radius: 2px; }
-#vm-sitespine .st-track { height: 100%; background: #9fb4a1; opacity: .26; }
-#vm-sitespine .st-fill { background: linear-gradient(#10432d, #32dbbe); opacity: .5; box-shadow: 0 0 10px rgba(50,219,190,.3); }
-#vm-sitespine .st-vert { position: absolute; left: 50%; top: 0; will-change: transform; }
-#vm-sitespine .st-vert svg { display: block; }
-#vm-sitespine .stv-wing, #vm-sitespine .stv-body { transition: fill .4s ease, fill-opacity .4s ease; }
-#vm-sitespine .stv-wing { fill: #9fb4a1; }
-#vm-sitespine .stv-body { fill: #9fb4a1; fill-opacity: .55; }
-#vm-sitespine .st-vert.on .stv-wing { fill: #32dbbe; }
-#vm-sitespine .st-vert.on .stv-body { fill: #32dbbe; fill-opacity: .95; }
-#vm-sitespine .st-vert.cur { filter: drop-shadow(0 0 9px rgba(50,219,190,.65)); }
-#vm-sitespine .st-vert.cur .stv-body { fill: #eef3ed; fill-opacity: .96; }
-#vm-sitespine .st-vert.cur .stv-wing { fill: #32dbbe; fill-opacity: 1; }
-#vm-sitespine .st-node { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; border-radius: 50%; background: #32dbbe; box-shadow: 0 0 0 5px rgba(50,219,190,.16), 0 0 16px rgba(50,219,190,.6); }
-@media (prefers-reduced-motion: reduce) { #vm-sitespine .stv-wing, #vm-sitespine .stv-body { transition: none; } }
-
-/* ---------- разворот-позвоночник по центру (v12, сборка скроллом) ---------- */
-.vm-spinechapter { position: relative; width: 100%; min-height: 240vh; box-sizing: border-box; background: radial-gradient(120% 60% at 50% 42%, rgba(18,80,54,.55) 0%, transparent 62%), #0c3a26; }
-.vm-spinechapter.sc-mob { min-height: 200vh; }
-.vm-spinechapter .sc-stage { position: fixed; left: 0; top: 0; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity .35s ease; z-index: 3; }
-.vm-spinechapter.sc-live .sc-stage { opacity: 1; }
-.vm-spinechapter .sc-spine { position: relative; height: 74vh; display: flex; align-items: center; justify-content: center; }
-.vm-spinechapter.sc-mob .sc-spine { height: 60vh; }
-.vm-spinechapter .sc-svg { height: 100%; overflow: visible; filter: drop-shadow(0 0 34px rgba(50,219,190,.22)); }
-.vm-spinechapter .sc-body { fill: #eef3ed; fill-opacity: .95; }
-.vm-spinechapter .sc-wing { fill: #32dbbe; fill-opacity: .85; }
-.vm-spinechapter .sc-disc { fill: #32dbbe; fill-opacity: .18; }
-.vm-spinechapter .sc-seg { opacity: .1; transform: scale(.55); transform-box: fill-box; transform-origin: 50% 50%; transition: opacity .5s ease, transform .6s cubic-bezier(.34,1.56,.64,1); }
-.vm-spinechapter .sc-seg.on { opacity: 1; transform: none; }
-.vm-spinechapter .sc-node { position: absolute; left: 50%; width: 18px; height: 18px; margin-left: -9px; margin-top: -9px; border-radius: 50%; background: #32dbbe; box-shadow: 0 0 0 7px rgba(50,219,190,.16), 0 0 26px rgba(50,219,190,.7); opacity: 0; transition: top .12s linear, opacity .3s; }
-.vm-spinechapter .sc-cap { position: absolute; left: 0; right: 0; bottom: 8%; display: flex; flex-direction: column; align-items: center; gap: 6px; color: #b9d2c3; }
-.vm-spinechapter .sc-kick { font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; color: #32dbbe; }
-.vm-spinechapter .sc-count { font-size: 13px; letter-spacing: .1em; opacity: .7; }
-
-/* ---------- хребет-ось по центру, на всю страницу (v13, водяной знак) ---------- */
-#vm-axisspine { position: fixed; left: 50%; top: 0; width: auto; height: 100vh; transform: translateX(-50%); z-index: -1; pointer-events: none; overflow: hidden; }
-#vm-axisspine.ax-mob { }
-#vm-axisspine .ax-track { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; }
-#vm-axisspine .ax-svg { display: block; }
-#vm-axisspine .ax-body { fill: #10432d; fill-opacity: .07; }
-#vm-axisspine .ax-wing { fill: #32dbbe; fill-opacity: .09; }
-#vm-axisspine .ax-disc { fill: #9fb4a1; fill-opacity: .06; }
-#vm-axisspine .ax-seg .ax-body, #vm-axisspine .ax-seg .ax-wing { transition: fill .5s ease, fill-opacity .5s ease; }
-#vm-axisspine .ax-seg.on .ax-body { fill: #10432d; fill-opacity: .1; }
-#vm-axisspine .ax-seg.on .ax-wing { fill: #32dbbe; fill-opacity: .24; }
-#vm-axisspine.ax-mob .ax-body { fill-opacity: .05; }
-#vm-axisspine.ax-mob .ax-wing { fill-opacity: .07; }
-#vm-axisspine.ax-mob .ax-seg.on .ax-wing { fill-opacity: .18; }
-#vm-axisspine .ax-node { position: absolute; left: 50%; top: 52%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #32dbbe; opacity: .32; box-shadow: 0 0 0 5px rgba(50,219,190,.08), 0 0 16px rgba(50,219,190,.35); }
 
 /* ---------- фигуры по секциям (порт из fable; v6 — только крест и точки) ---------- */
 .vm-shape { position: absolute; pointer-events: none; z-index: 0; }
@@ -467,35 +372,7 @@ html.vm-m-hover footer.elementor-location-footer a:hover { background-size: 100%
 }
 .vm-svc-seg path { transition: fill .4s; }
 .vm-svc-seg.on { opacity: 1; transform: none; }
-
-/* ---------- hero: фон-хребет ---------- */
-.vm-bgspine {
-  position: absolute;
-  left: 3%;
-  top: 5%;
-  height: 88%;
-  z-index: 0;
-  pointer-events: none;
-  animation: vm-breathe2 8s ease-in-out infinite;
-}
 @keyframes vm-breathe2 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-
-/* ---------- тёмный блок: волна по позвоночнику ---------- */
-.vm-darkwave {
-  position: absolute;
-  left: 4%;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 72%;
-  z-index: 0;
-  pointer-events: none;
-}
-.vm-darkwave .dw-seg {
-  animation: vm-ripple 5.5s ease-in-out infinite;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.vm-darkwave.vm-off .dw-seg { animation-play-state: paused; }
 @keyframes vm-ripple {
   0%, 100% { transform: none; }
   30% { transform: translateX(9px) rotate(5deg); }
@@ -597,9 +474,6 @@ html.vm-m-breath .vm-wa-icon::after { animation-duration: 6s; }
   .vm-border .vm-spark { display: none; }       /* блик обводки — самый дорогой paint-цикл */
   .vm-beam-wrap { display: none; }              /* луч: blur-слой (страховка к JS-гейту) */
   .vm-waves { opacity: .7; }
-  .vm-svc-seg { display: none; }   /* на мобиле строка во всю ширину — позвонку нет места */
-  .vm-bgspine { left: 1%; height: 64%; opacity: .6; }
-  .vm-darkwave { left: 2%; height: 54%; opacity: .7; }
   html.vm-on .vm-rv { transform: translateY(14px); }
   #vm-panel { width: 232px; left: 10px; bottom: 10px; }
 }
@@ -626,12 +500,24 @@ html.vm-on { overflow-x: clip; }
   .vm-wave-g, .vm-glow, .vm-arr,
   .vm-border .vm-spark,
   .vm-shape.sh-float svg,
-  .vm-darkwave .dw-seg,
-  .vm-bgspine,
-  .vm-wa-icon::after { animation: none !important; }
+    .vm-wa-icon::after { animation: none !important; }
   #vm-wirbel .wb-v { transition: none; opacity: 1; transform: none; }
   .vm-region .rg-line { stroke-dashoffset: 0; transition: none; }
   .vm-border .vm-draw { stroke-dashoffset: 0; transition: none; }
   .vm-border .vm-spark { opacity: 0 !important; }
   .vm-svc-seg, .vm-footchain svg { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+/* панель: шапка с языковым переключателем */
+#vm-panel .vm-p-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#vm-panel .vm-p-lang {
+  font: 600 10px/1 'Inter Tight', system-ui, sans-serif;
+  letter-spacing: .06em;
+  padding: 3px 8px;
+  border-radius: 99px;
+  border: 1px solid #10432d;
+  background: transparent;
+  color: #10432d;
+  cursor: pointer;
+}
+#vm-panel .vm-p-lang:hover { background: #10432d; color: #fff; }
