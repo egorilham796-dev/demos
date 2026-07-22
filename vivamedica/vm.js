@@ -11,7 +11,7 @@
   'use strict';
   var REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var NS = 'http://www.w3.org/2000/svg';
-  var STORE_KEY = 'vm7-state'; /* v7: 7 идей-тумблеров (группа «Идеи 22.07») — старый ключ не читаем */
+  var STORE_KEY = 'vm8-state'; /* v8: позвоночник-прогресс вместо мелких спайнов, дефолты пересобраны */
   function isMobile() { return matchMedia('(max-width: 767px)').matches; }
 
   var CFG = {
@@ -44,12 +44,6 @@
       /* блок статей (6acd534e) декорируется бегущим бликом обводки карточек —
          плавающие фигуры в плотной 3-колоночной сетке убраны (налезали на текст) */
       { sec: '4c9fd4d',  type: 'dots',  x: 95, y: 2,  s: 36,  depth: 8,  m: false }
-    ],
-    /* позвоночник (мотив точечной цепочки лого): секция, позиция %, высота px, m=true — и на мобиле */
-    spine: [
-      { sec: '6cd3ded7', x: 88,   y: 16,  h: 140, m: false },
-      { sec: '61470111', x: 92.5, y: 5,   h: 150, m: false },
-      { sec: '4c9fd4d',  x: 26,   y: 0.5, h: 96, m: true, mx: 60, my: 0.4 }
     ]
   };
 
@@ -566,44 +560,71 @@
     /* v6: модуль rings (кольца вокруг цифр 01-05) удалён — круглый мотив отвергнут клиенткой,
        владелец подтвердил снятие 22.07 */
 
-    { key: 'spine', label: 'Позвоночник (мотив лого)', group: 'Декор', def: true,
+    /* v8: три мелких спайна заменены одним позвоночником-прогрессом (владелец: «мелкий — несерьёзно») */
+    { key: 'wirbel', label: 'Позвоночник-прогресс страницы (собирается скроллом)', group: 'Декор', def: true,
       build: function (bag) {
-        var mob = isMobile();
-        var hosts = [];
-        CFG.spine.forEach(function (sp) {
-          if (mob && !sp.m) return;
-          var host = byId(sp.sec);
-          if (!host) return;
-          relativize(host);
-          var H = Math.round(sp.h * (mob ? 0.7 : 1)), W = Math.round(H * 0.32);
-          var box = bag.node(el('div', 'vm-spine', { 'aria-hidden': 'true' }));
-          box.style.left = ((mob && sp.mx != null) ? sp.mx : sp.x) + '%';
-          box.style.top = ((mob && sp.my != null) ? sp.my : sp.y) + '%';
-          box.style.width = W + 'px'; box.style.height = H + 'px';
-          var svg = el('svg', null, { viewBox: '0 0 32 100', preserveAspectRatio: 'xMidYMid meet' });
-          /* мягкая S-кривая — поясничный изгиб из её референса lumbar-lordosis */
-          var path = el('path', 's-curve', { d: 'M16 3 C 24 18, 9 34, 16 50 C 22 64, 10 80, 16 97', pathLength: 100 });
-          svg.appendChild(path);
-          box.appendChild(svg);
-          host.appendChild(box);
-          /* позвонки-точки вдоль кривой — как точечная цепочка в логотипе VivaMedica:
-             крупные тёмные позвонки, между ними мелкие мятные связки */
-          var L = path.getTotalLength(), N = 6;
-          for (var i = 0; i < N; i++) {
-            var pt = path.getPointAtLength(L * (i + 0.5) / N);
-            var vert = el('circle', 's-vert', { cx: pt.x.toFixed(1), cy: pt.y.toFixed(1), r: (3.6 - i * 0.28).toFixed(2) });
-            vert.style.transitionDelay = (250 + i * 140) + 'ms';
-            svg.appendChild(vert);
-            if (i < N - 1) {
-              var pm = path.getPointAtLength(L * (i + 1) / N);
-              var link = el('circle', 's-link', { cx: pm.x.toFixed(1), cy: pm.y.toFixed(1), r: 1.2 });
-              link.style.transitionDelay = (320 + i * 140) + 'ms';
-              svg.appendChild(link);
-            }
+        var secs = sections();
+        if (secs.length < 3) return;
+        if (secs.length > 10) secs = secs.slice(0, 10);
+        /* узкие экраны: своя компактная геометрия — колонка живёт в поле у кромки */
+        var slim = matchMedia('(max-width: 1299px)').matches;
+        var box = bag.node(el('div', null, { id: 'vm-wirbel', 'aria-hidden': 'true' }));
+        if (slim) box.classList.add('slim');
+        var VB_H = 560, VB_W = slim ? 24 : 38, CX = VB_W / 2;
+        var bodyW = slim ? 12 : 20, bodyH = slim ? 7 : 12, procDx = slim ? 9 : 14, procR = slim ? 1.6 : 2.6;
+        var svg = el('svg', null, { viewBox: '0 0 ' + VB_W + ' ' + VB_H, preserveAspectRatio: 'xMidYMid meet' });
+        var track = el('path', 'wb-track', { d: 'M' + CX + ' 8 V' + (VB_H - 8) });
+        var prog = el('path', 'wb-prog', { d: 'M' + CX + ' 8 V' + (VB_H - 8), pathLength: 100 });
+        svg.appendChild(track); svg.appendChild(prog);
+        /* позвонок на каждый верхнеуровневый блок страницы: тело + поперечные отростки.
+           «Не на месте» пока блок не пройден; при прохождении вправляется (метафора терапии) */
+        var step = (VB_H - 40) / secs.length;
+        var verts = secs.map(function (sec, i) {
+          var y = 20 + step * (i + 0.5);
+          var g = el('g', 'wb-v', { transform: 'translate(' + CX + ' ' + y.toFixed(1) + ')' });
+          g.appendChild(el('rect', null, { x: -bodyW / 2, y: -bodyH / 2, width: bodyW, height: bodyH, rx: bodyH * 0.4 }));
+          g.appendChild(el('circle', null, { cx: -procDx, cy: 0, r: procR }));
+          g.appendChild(el('circle', null, { cx: procDx, cy: 0, r: procR }));
+          if (!slim) {
+            g.classList.add('w-click');
+            bag.listen(g, 'click', function () { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
           }
-          hosts.push(box);
+          svg.appendChild(g);
+          return g;
         });
-        seenIO(bag, hosts, 0);
+        box.appendChild(svg);
+        document.body.appendChild(box);
+        function setH() { box.style.height = Math.round(innerHeight * (slim ? 0.5 : 0.56)) + 'px'; }
+        setH();
+        var rT;
+        bag.listen(window, 'resize', function () { clearTimeout(rT); rT = setTimeout(setH, 220); });
+        if (REDUCE) {
+          verts.forEach(function (g) { g.classList.add('w-done'); });
+          prog.style.strokeDashoffset = 0;
+          return;
+        }
+        /* полноширинные бегущие полосы (маркиза, лента услуг) проезжают под колонкой —
+           на это время позвоночник деликатно приглушается */
+        var shyEls = qa('.marquee').concat([byId(CFG.pinId)]).filter(Boolean);
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var max = document.documentElement.scrollHeight - innerHeight;
+          var p = max > 0 ? Math.min(1, scrollY / max) : 0;
+          prog.style.strokeDashoffset = (100 - p * 100).toFixed(2);
+          var line = innerHeight * 0.6;
+          secs.forEach(function (sec, i) {
+            verts[i].classList.toggle('w-done', sec.getBoundingClientRect().top < line);
+          });
+          var br = box.getBoundingClientRect();
+          var shy = shyEls.some(function (s) {
+            var r = s.getBoundingClientRect();
+            return r.bottom > br.top && r.top < br.bottom;
+          });
+          box.classList.toggle('w-shy', shy);
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
       } },
 
     { key: 'shapes', label: 'Фигуры по секциям (крест, точки)', group: 'Декор', def: true,
@@ -691,7 +712,7 @@
        Каждая — отдельный тумблер для показа клиентке.
        ============================================================ */
 
-    { key: 'progress', label: 'Линия прогресса чтения', group: 'Идеи 22.07', def: true,
+    { key: 'progress', label: 'Линия прогресса чтения (выкл: её роль у позвоночника)', group: 'Идеи 22.07', def: false,
       build: function (bag) {
         var bar = bag.node(el('div', null, { id: 'vm-progress', 'aria-hidden': 'true' }));
         document.body.appendChild(bar);
@@ -733,8 +754,9 @@
         digits.forEach(function (t) { io.observe(t); });
       } },
 
-    { key: 'ablauf', label: 'Нить прогресса вдоль шагов 01-05', group: 'Идеи 22.07', def: true,
+    { key: 'ablauf', label: 'Нить прогресса вдоль шагов 01-05 (выкл, десктоп)', group: 'Идеи 22.07', def: false,
       build: function (bag) {
+        if (isMobile()) return;   /* на мобиле читалась как «палка» у края */
         var list = byId(CFG.numbersListId);
         if (!list) return;
         relativize(list);
@@ -768,46 +790,8 @@
     { key: 'breath', label: 'Единый ритм дыхания декора (~6с)', group: 'Идеи 22.07', def: true,
       build: function (bag) { bag.cls(document.documentElement, 'vm-m-breath'); } },
 
-    { key: 'align', label: 'Hero: позвоночник выпрямляется скроллом', group: 'Идеи 22.07', def: true,
-      build: function (bag) {
-        if (REDUCE || isMobile()) return;
-        var hero = byId(CFG.heroId);
-        if (!hero) return;
-        var box = hero.querySelector('.vm-spine');   /* экземпляр модуля spine в hero */
-        if (!box) return;                            /* спайн выключен — идее не на чем жить */
-        var path = box.querySelector('.s-curve');
-        var circles = qa('circle', box.querySelector('svg'));
-        var d0 = path.getAttribute('d');
-        var pos0 = circles.map(function (c) { return { cx: c.getAttribute('cx'), cy: c.getAttribute('cy') }; });
-        bag.own(function () {
-          path.setAttribute('d', d0);
-          circles.forEach(function (c, i) { c.setAttribute('cx', pos0[i].cx); c.setAttribute('cy', pos0[i].cy); });
-        });
-        function dFor(amp) {
-          return 'M16 3 C ' + (16 + amp) + ' 18, ' + (16 - amp * 0.9) + ' 34, 16 50 C ' +
-                 (16 + amp * 0.8) + ' 64, ' + (16 - amp * 0.7) + ' 80, 16 97';
-        }
-        var ticking = false;
-        function frame() {
-          ticking = false;
-          var p = Math.max(0, Math.min(1, scrollY / (innerHeight * 0.9)));
-          var amp = 13 - 9 * p;   /* 13 (искривлён) -> 4 (здоровая мягкая S) — «терапия выравнивает» */
-          path.setAttribute('d', dFor(amp));
-          var L = path.getTotalLength(), N = 6, k = 0;
-          for (var i = 0; i < N; i++) {
-            var pt = path.getPointAtLength(L * (i + 0.5) / N);
-            if (circles[k]) { circles[k].setAttribute('cx', pt.x.toFixed(1)); circles[k].setAttribute('cy', pt.y.toFixed(1)); }
-            k++;
-            if (i < N - 1) {
-              var pm = path.getPointAtLength(L * (i + 1) / N);
-              if (circles[k]) { circles[k].setAttribute('cx', pm.x.toFixed(1)); circles[k].setAttribute('cy', pm.y.toFixed(1)); }
-              k++;
-            }
-          }
-        }
-        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
-        frame();
-      } },
+    /* v8: модуль align удалён — метафора «терапия вправляет» зашита в сам позвоночник-прогресс
+       (позвонки из смещённых встают ровно при прохождении блока) */
 
     { key: 'region', label: 'Контур холмов Вестервальда в футере', group: 'Идеи 22.07', def: true,
       build: function (bag) {
@@ -832,7 +816,7 @@
         seenIO(bag, [box], 0);
       } },
 
-    { key: 'painmap', label: 'Карта боли: точки на силуэте → услуга (десктоп)', group: 'Идеи 22.07', def: true,
+    { key: 'painmap', label: 'Карта боли: точки на силуэте → услуга (выкл: ждёт одобрения)', group: 'Идеи 22.07', def: false,
       build: function (bag) {
         if (matchMedia('(max-width: 1023px)').matches) return;
         var sec = byId(CFG.numbersId), list = byId(CFG.numbersListId);
@@ -988,7 +972,10 @@
     buildPanel();
     /* смена мобайл/десктоп (поворот, ресайз окна) — пересобрать всё:
        модули читают ширину при build, снимок на загрузке устаревает */
-    function bpState() { return (isMobile() ? 'm' : '') + (matchMedia('(max-width: 1023px)').matches ? 't' : 'd'); }
+    function bpState() {
+      return (isMobile() ? 'm' : '') + (matchMedia('(max-width: 1023px)').matches ? 't' : '') +
+             (matchMedia('(max-width: 1299px)').matches ? 's' : 'd');
+    }
     var lastBp = bpState(), rzT;
     addEventListener('resize', function () {
       clearTimeout(rzT);

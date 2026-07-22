@@ -296,38 +296,56 @@ html.vm-m-darklight [data-id="5a1034bc"] > .e-con-inner { position: relative; z-
 
 /* v6: блок колец вокруг цифр удалён вместе с модулем rings */
 
-/* ---------- позвоночник (мотив точечной цепочки лого) ---------- */
-.vm-spine { position: absolute; pointer-events: none; z-index: 0; }
-.vm-spine svg {
-  display: block;
-  width: 100%; height: 100%;
-  overflow: visible;
-  animation: vm-spine-breathe 7s ease-in-out infinite;
+/* ---------- позвоночник-прогресс страницы (v8): fixed-колонка справа ----------
+   позвонок = верхнеуровневый блок; пока блок не пройден — позвонок «не на месте»
+   (смещён и повёрнут), при прохождении вправляется. Клик по позвонку = переход. */
+#vm-wirbel {
+  position: fixed;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity .4s;
 }
-@keyframes vm-spine-breathe {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-.vm-spine .s-curve {
+#vm-wirbel.w-shy { opacity: .22; }
+#vm-wirbel svg { display: block; height: 100%; width: auto; overflow: visible; }
+#vm-wirbel .wb-track {
   fill: none;
   stroke: var(--vm-ink);
-  stroke-opacity: .45;
+  stroke-opacity: .16;
   stroke-width: 1.6;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+#vm-wirbel .wb-prog {
+  fill: none;
+  stroke: var(--vm-accent);
+  stroke-opacity: .85;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  transition: stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1) .1s;
 }
-.vm-spine.vm-seen .s-curve { stroke-dashoffset: 0; }
-.vm-spine circle {
-  transform: scale(0);
-  transform-origin: center;
+#vm-wirbel .wb-v {
+  opacity: .25;
+  transform: translateX(7px) rotate(12deg);
   transform-box: fill-box;
-  transition: transform .5s cubic-bezier(.34,1.56,.64,1);
+  transform-origin: center;
+  transition: opacity .5s, transform .6s cubic-bezier(.34,1.56,.64,1);
 }
-.vm-spine.vm-seen circle { transform: scale(1); }
-.vm-spine .s-vert { fill: var(--vm-ink); fill-opacity: .82; }
-.vm-spine .s-link { fill: var(--vm-accent); }
+#vm-wirbel .wb-v rect {
+  fill: #fff;
+  stroke: var(--vm-ink);
+  stroke-opacity: .75;
+  stroke-width: 1.6;
+}
+#vm-wirbel .wb-v circle { fill: var(--vm-accent); }
+#vm-wirbel .wb-v.w-done { opacity: 1; transform: none; }
+#vm-wirbel .wb-v.w-click { pointer-events: auto; cursor: pointer; }
+#vm-wirbel .wb-v.w-click:hover rect { stroke-opacity: 1; stroke: var(--vm-accent); }
+#vm-wirbel.slim { right: 0; }
+#vm-wirbel.slim .wb-track { stroke-opacity: .12; }
 
 /* ---------- фигуры по секциям (порт из fable; v6 — только крест и точки) ---------- */
 .vm-shape { position: absolute; pointer-events: none; z-index: 0; }
@@ -508,7 +526,6 @@ html.vm-m-hover footer.elementor-location-footer a:hover { background-size: 100%
 }
 /* 4. единый ритм дыхания (~6с — темп спокойного вдоха-выдоха) */
 html.vm-m-breath .vm-glow { animation-duration: 6s !important; animation-delay: 0s !important; }
-html.vm-m-breath .vm-spine svg { animation-duration: 6s; }
 html.vm-m-breath .vm-wa-icon::after { animation-duration: 6s; }
 /* 6. контур холмов Вестервальда в футере */
 .vm-region { position: absolute; pointer-events: none; z-index: 0; }
@@ -598,16 +615,17 @@ html.vm-on { overflow-x: clip; }
   .vm-icon > svg, .vm-icon .e-font-icon-svg { transform: none !important; opacity: 1 !important; }
   .vm-wave-g, .vm-glow, .vm-arr,
   .vm-border .vm-spark, .vm-squig .q-spark,
-  .vm-shape.sh-float svg, .vm-spine svg,
+  .vm-shape.sh-float svg,
   .vm-pain .pm-dot,
   .vm-wa-icon::after { animation: none !important; }
   #vm-progress { transition: none; }
+  #vm-wirbel .wb-v { transition: none; opacity: 1; transform: none; }
+  #vm-wirbel .wb-prog { transition: none; }
   .vm-region .rg-line { stroke-dashoffset: 0; transition: none; }
   .vm-pain .pm-body { stroke-dashoffset: 0; transition: none; }
   .vm-pain .pm-dot { opacity: 1; transition: none; }
   .vm-border .vm-draw { stroke-dashoffset: 0; transition: none; }
-  .vm-squig .q-draw, .vm-spine .s-curve { stroke-dashoffset: 0; transition: none; }
-  .vm-spine circle { transform: scale(1); transition: none; }
+  .vm-squig .q-draw { stroke-dashoffset: 0; transition: none; }
   .vm-squig .q-spark, .vm-border .vm-spark { opacity: 0 !important; }
   .vm-icon-arc rect { stroke-dashoffset: 0; transition: none; }
   .vm-footline { transform: scaleX(1); transition: none; }
