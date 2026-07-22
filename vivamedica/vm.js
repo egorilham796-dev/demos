@@ -11,7 +11,7 @@
   'use strict';
   var REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var NS = 'http://www.w3.org/2000/svg';
-  var STORE_KEY = 'vm5-state'; /* v5: сменился состав модулей — старый ключ не читаем */
+  var STORE_KEY = 'vm7-state'; /* v7: 7 идей-тумблеров (группа «Идеи 22.07») — старый ключ не читаем */
   function isMobile() { return matchMedia('(max-width: 767px)').matches; }
 
   var CFG = {
@@ -27,27 +27,29 @@
       '[data-id="5c5a4c60"] .feature-card',
       '[data-id="6acd534e"] .e-loop-item'
     ],
-    ringNumbers: '[data-id="61470111"] .elementor-heading-title',
     glowHosts: ['6cd3ded7', '5c5a4c60', '4c9fd4d'],
     arrowButtons: '.elementor-button',
     waButton: '.elementor-element-d498011',
     footer: 'footer.elementor-location-footer',
     blogId: '6acd534e',
     articlesBtnId: '1a3c26b5',      // кнопка «Alle Artikel anzeigen»: в снапшоте потерян класс button1
-    /* фигуры: секция, тип, позиция в %, размер px, глубина параллакса, m=true — есть и на мобиле */
+    /* фигуры: секция, тип, позиция в %, размер px, глубина параллакса, m=true — есть и на мобиле.
+       v6 (фидбек клиентки 22.07): круглые мотивы ring/arcs/pulse убраны — остались крест и точки */
     shapes: [
-      { sec: '6cd3ded7', type: 'ring',  x: 86, y: 5,  s: 110, depth: 14, m: true },
-      { sec: '6cd3ded7', type: 'cross', x: 4,  y: 70, s: 22,  depth: -8, m: false },
+      { sec: '6cd3ded7', type: 'cross', x: 4,  y: 70, s: 22,  depth: -8, m: false, t: false },
       { sec: '5d04cfcc', type: 'dots',  x: 91, y: 1,  s: 46,  depth: 0,  m: false },
-      { sec: '5c5a4c60', type: 'cross', x: 93, y: 5,  s: 20,  depth: -10, m: false },
+      { sec: '5c5a4c60', type: 'cross', x: 93, y: 5,  s: 20,  depth: -10, m: false, t: false },
       { sec: '5c5a4c60', type: 'dots',  x: 2,  y: 96, s: 42,  depth: 8,  m: false },
-      { sec: '79928337', type: 'arcs',  x: 94, y: 1,  s: 56,  depth: 10, m: true },
-      { sec: '61470111', type: 'ring',  x: 88, y: 8,  s: 84,  depth: 14, m: false },
       { sec: '61470111', type: 'cross', x: 94, y: 62, s: 16,  depth: 0,  m: false },
       /* блок статей (6acd534e) декорируется бегущим бликом обводки карточек —
          плавающие фигуры в плотной 3-колоночной сетке убраны (налезали на текст) */
-      { sec: '4c9fd4d',  type: 'pulse', x: 26, y: 2,  mx: 58, my: 0.5, s: 68,  depth: 0,  m: true },
       { sec: '4c9fd4d',  type: 'dots',  x: 95, y: 2,  s: 36,  depth: 8,  m: false }
+    ],
+    /* позвоночник (мотив точечной цепочки лого): секция, позиция %, высота px, m=true — и на мобиле */
+    spine: [
+      { sec: '6cd3ded7', x: 88,   y: 16,  h: 140, m: false },
+      { sec: '61470111', x: 92.5, y: 5,   h: 150, m: false },
+      { sec: '4c9fd4d',  x: 26,   y: 0.5, h: 96, m: true, mx: 60, my: 0.4 }
     ]
   };
 
@@ -136,34 +138,12 @@
   var MINT = '#32dbbe', INK = '#10432d';
   /* библиотека фигур (порт из fable-варианта); каждая — svg с анимацией через классы */
   var SHAPES = {
-    ring: function () { /* пунктирный круг, медленно вращается («круговой цикл») */
-      var svg = el('svg', null, { viewBox: '0 0 48 48' });
-      var c = el('circle', 'sh-line sh-ring', { cx: 24, cy: 24, r: 22 });
-      c.style.stroke = MINT; c.style.strokeOpacity = '.5';
-      c.style.strokeWidth = '1.3'; c.style.strokeDasharray = '5 7';
-      svg.appendChild(c);
-      return svg;
-    },
+    /* v6: круглые ring/arcs/pulse убраны по фидбеку клиентки 22.07 */
     cross: function () { /* медицинский плюс */
       var svg = el('svg', null, { viewBox: '0 0 24 24' });
       var p = el('path', 'sh-line', { d: 'M12 3 V21 M3 12 H21' });
       p.style.stroke = INK; p.style.strokeOpacity = '.3'; p.style.strokeWidth = '2';
       svg.appendChild(p);
-      return svg;
-    },
-    arcs: function () { /* концентрические дуги-«волны», рисуются с задержкой */
-      var svg = el('svg', null, { viewBox: '0 0 48 48' });
-      [10, 16, 22].forEach(function (r, i) {
-        var a = el('circle', 'sh-line sh-draw', { cx: 24, cy: 24, r: r, pathLength: 100 });
-        a.style.stroke = MINT; a.style.strokeOpacity = String(.55 - i * .12);
-        a.style.strokeWidth = '1.5';
-        a.style.strokeDasharray = '55 45'; /* дуга, не полный круг */
-        a.style.transitionDelay = (i * 180) + 'ms';
-        a.style.transform = 'rotate(' + (i * 40 - 120) + 'deg)';
-        a.style.transformOrigin = 'center';
-        a.style.transformBox = 'fill-box';
-        svg.appendChild(a);
-      });
       return svg;
     },
     dots: function () { /* сетка точек 3x3 */
@@ -173,13 +153,6 @@
         d.style.fill = INK; d.style.fillOpacity = '.22';
         svg.appendChild(d);
       }
-      return svg;
-    },
-    pulse: function () { /* линия пульса — рисуется при появлении */
-      var svg = el('svg', null, { viewBox: '0 0 64 24' });
-      var p = el('path', 'sh-line sh-draw', { d: 'M0 13 H18 L25 4 L33 21 L40 13 H64', pathLength: 100 });
-      p.style.stroke = MINT; p.style.strokeOpacity = '.65'; p.style.strokeWidth = '1.8';
-      svg.appendChild(p);
       return svg;
     }
   };
@@ -307,34 +280,35 @@
         seenIO(bag, rows.concat(divs), 70);
       } },
 
-    { key: 'iconpop', label: 'Иконки Stärken: появление + дуга', group: 'Поведение блоков', def: true,
+    { key: 'iconpop', label: 'Иконки Stärken: появление + квадратный контур', group: 'Поведение блоков', def: true,
       build: function (bag) {
         var items = [];
         qa('[data-id="' + CFG.staerkenId + '"] .feature-card .elementor-icon').forEach(function (ic) {
           relativize(ic);
           bag.cls(ic, 'vm-icon');
-          /* дуга вокруг видимого значка, а не вокруг .elementor-icon (он выше и шире) */
+          /* контур вокруг видимого значка, а не вокруг .elementor-icon (он выше и шире).
+             v6: квадратный (скруглённый) вместо круга — просьба клиентки 22.07 */
           var pict = ic.querySelector('svg, .e-font-icon-svg, i') || ic;
           var svg = el('svg', 'vm-icon-arc', { 'aria-hidden': 'true' });
           /* инлайном: CSS темы (.elementor-icon svg) специфичнее класса и перебивает position */
           svg.style.position = 'absolute';
           svg.style.transform = 'translate(-50%,-50%)';
-          var circ = el('circle', null, { pathLength: 100 });
-          svg.appendChild(circ);
+          var rect = el('rect', null, { pathLength: 100, rx: 12 });
+          svg.appendChild(rect);
           bag.node(svg); ic.appendChild(svg);
-          items.push({ ic: ic, pict: pict, svg: svg, circ: circ });
+          items.push({ ic: ic, pict: pict, svg: svg, rect: rect });
         });
         function place() {
           items.forEach(function (it) {
             var pb = it.pict.getBoundingClientRect(), ib = it.ic.getBoundingClientRect();
             if (!pb.width) return;
-            var size = Math.round(Math.max(pb.width, pb.height)) + 18;
+            var size = Math.round(Math.max(pb.width, pb.height)) + 22;
             it.svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
             it.svg.style.width = size + 'px'; it.svg.style.height = size + 'px';
             it.svg.style.left = (pb.left - ib.left + pb.width / 2) + 'px';
             it.svg.style.top = (pb.top - ib.top + pb.height / 2) + 'px';
-            var c = size / 2;
-            it.circ.setAttribute('cx', c); it.circ.setAttribute('cy', c); it.circ.setAttribute('r', c - 2);
+            it.rect.setAttribute('x', 1.5); it.rect.setAttribute('y', 1.5);
+            it.rect.setAttribute('width', size - 3); it.rect.setAttribute('height', size - 3);
           });
         }
         place();
@@ -382,7 +356,7 @@
         if (photo) { bag.cls(photo, 'vm-tilt'); bag.own(function () { photo.style.transform = ''; }); }
       } },
 
-    { key: 'darktext', label: 'Тёмный блок: текст проявляется скроллом', group: 'Поведение блоков', def: true,
+    { key: 'darktext', label: 'Тёмный блок: текст проявляется скроллом (выкл)', group: 'Поведение блоков', def: false,
       build: function (bag) {
         /* длинный текст блока живёт в p.elementor-heading-title (виджет-заголовок как абзац);
            фильтр >30 слов отсекает настоящий заголовок, а обёрнутые headmask'ом отпадают по children */
@@ -589,67 +563,58 @@
         dark.insertBefore(wrap, dark.firstChild);
       } },
 
-    { key: 'rings', label: 'Кольца вокруг цифр 01-05', group: 'Декор', def: true,
+    /* v6: модуль rings (кольца вокруг цифр 01-05) удалён — круглый мотив отвергнут клиенткой,
+       владелец подтвердил снятие 22.07 */
+
+    { key: 'spine', label: 'Позвоночник (мотив лого)', group: 'Декор', def: true,
       build: function (bag) {
-        /* на мобиле строки стакаются и кольцо гарантированно лезет на текст — не строим */
-        if (isMobile()) return;
-        var hosts = [], items = [];
-        qa(CFG.ringNumbers).forEach(function (t) {
-          if (!/^0\d$/.test(t.textContent.trim())) return;
-          relativize(t);
-          bag.cls(t, 'vm-ring-host');
-          var svg = el('svg', 'vm-ring', { 'aria-hidden': 'true' });
-          svg.style.transform = 'translate(-50%,-50%)';
-          var dash = el('circle', 'r-dash', { pathLength: 100 });
-          var arc = el('circle', 'r-arc', { pathLength: 100 });
-          svg.appendChild(dash); svg.appendChild(arc);
-          bag.node(svg); t.appendChild(svg);
-          items.push({ t: t, svg: svg, circles: [dash, arc] });
-          hosts.push(t);
+        var mob = isMobile();
+        var hosts = [];
+        CFG.spine.forEach(function (sp) {
+          if (mob && !sp.m) return;
+          var host = byId(sp.sec);
+          if (!host) return;
+          relativize(host);
+          var H = Math.round(sp.h * (mob ? 0.7 : 1)), W = Math.round(H * 0.32);
+          var box = bag.node(el('div', 'vm-spine', { 'aria-hidden': 'true' }));
+          box.style.left = ((mob && sp.mx != null) ? sp.mx : sp.x) + '%';
+          box.style.top = ((mob && sp.my != null) ? sp.my : sp.y) + '%';
+          box.style.width = W + 'px'; box.style.height = H + 'px';
+          var svg = el('svg', null, { viewBox: '0 0 32 100', preserveAspectRatio: 'xMidYMid meet' });
+          /* мягкая S-кривая — поясничный изгиб из её референса lumbar-lordosis */
+          var path = el('path', 's-curve', { d: 'M16 3 C 24 18, 9 34, 16 50 C 22 64, 10 80, 16 97', pathLength: 100 });
+          svg.appendChild(path);
+          box.appendChild(svg);
+          host.appendChild(box);
+          /* позвонки-точки вдоль кривой — как точечная цепочка в логотипе VivaMedica:
+             крупные тёмные позвонки, между ними мелкие мятные связки */
+          var L = path.getTotalLength(), N = 6;
+          for (var i = 0; i < N; i++) {
+            var pt = path.getPointAtLength(L * (i + 0.5) / N);
+            var vert = el('circle', 's-vert', { cx: pt.x.toFixed(1), cy: pt.y.toFixed(1), r: (3.6 - i * 0.28).toFixed(2) });
+            vert.style.transitionDelay = (250 + i * 140) + 'ms';
+            svg.appendChild(vert);
+            if (i < N - 1) {
+              var pm = path.getPointAtLength(L * (i + 1) / N);
+              var link = el('circle', 's-link', { cx: pm.x.toFixed(1), cy: pm.y.toFixed(1), r: 1.2 });
+              link.style.transitionDelay = (320 + i * 140) + 'ms';
+              svg.appendChild(link);
+            }
+          }
+          hosts.push(box);
         });
-        function place() {
-          items.forEach(function (it) {
-            var t = it.t;
-            /* svg на время замера прячем: Range по содержимому захватил бы и его
-               (свежесозданный svg без viewBox — это дефолтные 300x150) */
-            it.svg.style.display = 'none';
-            var rng = document.createRange();
-            rng.selectNodeContents(t);
-            var tb = rng.getBoundingClientRect(), hb = t.getBoundingClientRect();
-            var size = Math.round(Math.max(tb.width, tb.height) + 30);
-            /* защита от налезания: если кольцо пересечёт текст соседей по строке — прячем его */
-            var row = t.closest('.feature-left') || t.parentElement;
-            var cx = tb.left + tb.width / 2, cy = tb.top + tb.height / 2;
-            var ringR = { l: cx - size / 2, r: cx + size / 2, t: cy - size / 2, b: cy + size / 2 };
-            var hit = qa('h1, h2, h3, p, a', row).some(function (n) {
-              if (n === t || t.contains(n) || n.contains(t)) return false;
-              var b = n.getBoundingClientRect();
-              if (!b.width || !b.height) return false;
-              return ringR.l < b.right - 4 && ringR.r > b.left + 4 && ringR.t < b.bottom - 4 && ringR.b > b.top + 4;
-            });
-            it.svg.style.display = hit ? 'none' : '';
-            if (hit) return;
-            it.svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
-            it.svg.style.width = size + 'px'; it.svg.style.height = size + 'px';
-            it.svg.style.left = (tb.left - hb.left + tb.width / 2) + 'px';
-            it.svg.style.top = (tb.top - hb.top + tb.height / 2) + 'px';
-            var c = size / 2, r = c - 2;
-            it.circles.forEach(function (ci) { ci.setAttribute('cx', c); ci.setAttribute('cy', c); ci.setAttribute('r', r); });
-          });
-        }
-        place();
-        var rT;
-        bag.listen(window, 'resize', function () { clearTimeout(rT); rT = setTimeout(place, 220); });
         seenIO(bag, hosts, 0);
       } },
 
-    { key: 'shapes', label: 'Фигуры по секциям (круг, крест, дуги, пульс)', group: 'Декор', def: true,
+    { key: 'shapes', label: 'Фигуры по секциям (крест, точки)', group: 'Декор', def: true,
       build: function (bag) {
         var mob = isMobile();
+        var narrow = matchMedia('(max-width: 1023px)').matches;
         var drift = [];   /* элементы с параллакс-глубиной */
         var seen = [];    /* элементы с прорисовкой (arcs, pulse) */
         CFG.shapes.forEach(function (sp) {
           if (mob && !sp.m) return;
+          if (narrow && sp.t === false) return;   /* на планшете макет плотнее — эти фигуры без места */
           var host = byId(sp.sec);
           if (!host) return;
           relativize(host);
@@ -719,6 +684,188 @@
         f.insertBefore(line, f.firstChild);
         bag.cls(f, 'vm-foot');
         seenIO(bag, [f], 0);
+      } },
+
+    /* ============================================================
+       Идеи 22.07 — линейка «стандарт → нестандарт» под немецкий вкус.
+       Каждая — отдельный тумблер для показа клиентке.
+       ============================================================ */
+
+    { key: 'progress', label: 'Линия прогресса чтения', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        var bar = bag.node(el('div', null, { id: 'vm-progress', 'aria-hidden': 'true' }));
+        document.body.appendChild(bar);
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var max = document.documentElement.scrollHeight - innerHeight;
+          bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, scrollY / max) : 0).toFixed(4) + ')';
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        bag.listen(window, 'resize', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
+      } },
+
+    { key: 'count', label: 'Счётчик цифр 01-05 при появлении', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        var digits = qa('[data-id="' + CFG.numbersId + '"] .elementor-heading-title').filter(function (t) {
+          return /^0\d$/.test(t.textContent.trim());
+        });
+        if (!digits.length) return;
+        digits.forEach(function (t) {
+          var fin = t.textContent.trim();
+          bag.own(function () { t.textContent = fin; });
+        });
+        if (REDUCE) return;
+        var io = bag.io({ cb: function (es) {
+          es.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            io.unobserve(e.target);
+            var t = e.target, fin = t.textContent.trim(), n = parseInt(fin, 10), i = -1;
+            var iv = setInterval(function () {
+              i++;
+              if (i >= n) { clearInterval(iv); t.textContent = fin; return; }
+              t.textContent = '0' + i;
+            }, 110);
+            bag.own(function () { clearInterval(iv); });
+          });
+        } });
+        digits.forEach(function (t) { io.observe(t); });
+      } },
+
+    { key: 'ablauf', label: 'Нить прогресса вдоль шагов 01-05', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        var list = byId(CFG.numbersListId);
+        if (!list) return;
+        relativize(list);
+        var wrap = bag.node(el('div', 'vm-ablauf', { 'aria-hidden': 'true' }));
+        var fill = el('div', 'vm-ablauf-fill');
+        var dot = el('div', 'vm-ablauf-dot');
+        wrap.appendChild(fill); wrap.appendChild(dot);
+        list.appendChild(wrap);
+        function placeX() {
+          var digit = list.querySelector('.elementor-heading-title');
+          var lb = list.getBoundingClientRect();
+          var x = isMobile() ? 4 : (digit ? digit.getBoundingClientRect().left - lb.left - 16 : 24);
+          wrap.style.left = Math.max(2, Math.round(x)) + 'px';
+        }
+        placeX();
+        var rT;
+        bag.listen(window, 'resize', function () { clearTimeout(rT); rT = setTimeout(placeX, 220); });
+        if (REDUCE) { fill.style.height = '100%'; dot.style.display = 'none'; return; }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var r = list.getBoundingClientRect();
+          var p = Math.max(0, Math.min(1, (innerHeight * 0.7 - r.top) / r.height));
+          fill.style.height = (p * 100).toFixed(2) + '%';
+          dot.style.top = (p * 100).toFixed(2) + '%';
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
+      } },
+
+    { key: 'breath', label: 'Единый ритм дыхания декора (~6с)', group: 'Идеи 22.07', def: true,
+      build: function (bag) { bag.cls(document.documentElement, 'vm-m-breath'); } },
+
+    { key: 'align', label: 'Hero: позвоночник выпрямляется скроллом', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        if (REDUCE || isMobile()) return;
+        var hero = byId(CFG.heroId);
+        if (!hero) return;
+        var box = hero.querySelector('.vm-spine');   /* экземпляр модуля spine в hero */
+        if (!box) return;                            /* спайн выключен — идее не на чем жить */
+        var path = box.querySelector('.s-curve');
+        var circles = qa('circle', box.querySelector('svg'));
+        var d0 = path.getAttribute('d');
+        var pos0 = circles.map(function (c) { return { cx: c.getAttribute('cx'), cy: c.getAttribute('cy') }; });
+        bag.own(function () {
+          path.setAttribute('d', d0);
+          circles.forEach(function (c, i) { c.setAttribute('cx', pos0[i].cx); c.setAttribute('cy', pos0[i].cy); });
+        });
+        function dFor(amp) {
+          return 'M16 3 C ' + (16 + amp) + ' 18, ' + (16 - amp * 0.9) + ' 34, 16 50 C ' +
+                 (16 + amp * 0.8) + ' 64, ' + (16 - amp * 0.7) + ' 80, 16 97';
+        }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var p = Math.max(0, Math.min(1, scrollY / (innerHeight * 0.9)));
+          var amp = 13 - 9 * p;   /* 13 (искривлён) -> 4 (здоровая мягкая S) — «терапия выравнивает» */
+          path.setAttribute('d', dFor(amp));
+          var L = path.getTotalLength(), N = 6, k = 0;
+          for (var i = 0; i < N; i++) {
+            var pt = path.getPointAtLength(L * (i + 0.5) / N);
+            if (circles[k]) { circles[k].setAttribute('cx', pt.x.toFixed(1)); circles[k].setAttribute('cy', pt.y.toFixed(1)); }
+            k++;
+            if (i < N - 1) {
+              var pm = path.getPointAtLength(L * (i + 1) / N);
+              if (circles[k]) { circles[k].setAttribute('cx', pm.x.toFixed(1)); circles[k].setAttribute('cy', pm.y.toFixed(1)); }
+              k++;
+            }
+          }
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
+      } },
+
+    { key: 'region', label: 'Контур холмов Вестервальда в футере', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        var f = document.querySelector(CFG.footer);
+        if (!f) return;
+        relativize(f);
+        var mob = isMobile();
+        var box = bag.node(el('div', 'vm-region', { 'aria-hidden': 'true' }));
+        box.style.width = (mob ? 180 : 260) + 'px';
+        box.style.height = (mob ? 34 : 48) + 'px';
+        if (mob) { box.style.left = '20px'; box.style.bottom = '84px'; }
+        else { box.style.right = '4%'; box.style.bottom = '64px'; }
+        var svg = el('svg', null, { viewBox: '0 0 260 48', preserveAspectRatio: 'none' });
+        [
+          { d: 'M0 44 C 30 40, 46 24, 74 26 C 100 28, 112 14, 138 16 C 168 18, 180 34, 210 36 C 230 37, 245 42, 260 44', cls: 'rg-far' },
+          { d: 'M0 46 C 40 44, 60 30, 92 33 C 124 36, 150 22, 186 27 C 214 31, 236 42, 260 46', cls: 'rg-near' }
+        ].forEach(function (hp) {
+          svg.appendChild(el('path', 'rg-line ' + hp.cls, { d: hp.d, pathLength: 100 }));
+        });
+        box.appendChild(svg);
+        f.appendChild(box);
+        seenIO(bag, [box], 0);
+      } },
+
+    { key: 'painmap', label: 'Карта боли: точки на силуэте → услуга (десктоп)', group: 'Идеи 22.07', def: true,
+      build: function (bag) {
+        if (matchMedia('(max-width: 1023px)').matches) return;
+        var sec = byId(CFG.numbersId), list = byId(CFG.numbersListId);
+        if (!sec || !list) return;
+        relativize(sec);
+        var box = bag.node(el('div', 'vm-pain'));
+        var svg = el('svg', null, { viewBox: '0 0 60 150' });
+        /* контурный силуэт спереди — тем же штрихом, что весь декор */
+        svg.appendChild(el('path', 'pm-body', {
+          d: 'M30 8 a6 6 0 1 1 0.01 0 M30 20 C 22 22, 18 26, 17 34 L14 58 C 14 62, 18 63, 19 59 L23 40 L23 66 L19 108 C 18 113, 24 114, 25 109 L30 74 L35 109 C 36 114, 42 113, 41 108 L37 66 L37 40 L41 59 C 42 63, 46 62, 46 58 L43 34 C 42 26, 38 22, 30 20'
+        }));
+        box.appendChild(svg);
+        var rows = qa('.feature-left', list);
+        /* точка боли -> строка услуги в списке 01-05 */
+        [
+          { x: 30, y: 24,  row: 4 },   /* Nacken  -> 05 Schmerztherapie */
+          { x: 30, y: 52,  row: 0 },   /* Rücken  -> 01 Manuelle Therapie */
+          { x: 23, y: 84,  row: 3 },   /* Bein    -> 04 Lymphdrainage */
+          { x: 36, y: 100, row: 1 }    /* Knie    -> 02 Krankengymnastik */
+        ].forEach(function (sp) {
+          var dot = el('circle', 'pm-dot', { cx: sp.x, cy: sp.y, r: 3.4, tabindex: 0, role: 'button', 'aria-label': 'Passende Therapie zeigen' });
+          bag.listen(dot, 'click', function () {
+            var row = rows[sp.row];
+            if (!row) return;
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('vm-pain-hit');
+            setTimeout(function () { row.classList.remove('vm-pain-hit'); }, 1600);
+          });
+          bag.listen(dot, 'keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dot.dispatchEvent(new Event('click')); } }, { passive: false });
+          svg.appendChild(dot);
+        });
+        sec.appendChild(box);
+        seenIO(bag, [box], 0);
       } }
   ];
 
@@ -841,11 +988,12 @@
     buildPanel();
     /* смена мобайл/десктоп (поворот, ресайз окна) — пересобрать всё:
        модули читают ширину при build, снимок на загрузке устаревает */
-    var lastMobile = isMobile(), rzT;
+    function bpState() { return (isMobile() ? 'm' : '') + (matchMedia('(max-width: 1023px)').matches ? 't' : 'd'); }
+    var lastBp = bpState(), rzT;
     addEventListener('resize', function () {
       clearTimeout(rzT);
       rzT = setTimeout(function () {
-        if (isMobile() !== lastMobile) { lastMobile = isMobile(); applyState(); }
+        if (bpState() !== lastBp) { lastBp = bpState(); applyState(); }
       }, 300);
     }, { passive: true });
   }
