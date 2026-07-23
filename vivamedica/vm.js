@@ -748,6 +748,130 @@
         bag.listen(document, 'scroll', onScroll, { passive: true, capture: true });
         bag.listen(window, 'resize', onScroll);
         frame();
+      } },
+
+    /* ---- СОХРАНЁННЫЕ варианты (def:false) — не дефолт, но остаются тумблерами, чтобы владелец/клиент
+       мог включать/выключать и сравнивать (владелец 23.07: «не убирай то, что сделали»). CSS всех
+       ниже жив в vm.css. ---- */
+
+    /* «Кости»: скелет-эмблема (рёбра+хребет+таз+кольца, Magnific) фоном в герое, кольца дышат. */
+    { key: 'spineemblem', label: 'Signet-Skelett im Hero (Knochen, atmende Ringe)', labelRu: 'Скелет-эмблема в герое («кости», дышащие кольца)', group: 'Dekor', def: false,
+      build: function (bag) {
+        var hero = byId(CFG.heroId);
+        if (!hero) return;
+        relativize(hero);
+        var box = bag.node(el('div', 'vm-emblem', { 'aria-hidden': 'true' }));
+        box.appendChild(el('img', null, { src: 'assets/spine-emblem.png', alt: '' }));
+        hero.insertBefore(box, hero.firstChild);
+      } },
+
+    /* Полоса-момент перед блоком Rückenschmerzen: глиф-позвонки собираются + заголовок + фото taping. */
+    { key: 'spineband', label: 'Wirbelsäulen-Band vor „Rückenschmerzen“ (Variante)', labelRu: 'Полоса-хребет перед блоком «Боль в спине» (вариант)', group: 'Dekor', def: false,
+      build: function (bag) {
+        var anchor = null, heads = qa('.elementor-heading-title');
+        for (var hi = 0; hi < heads.length; hi++) {
+          if (!/Rückenschmerzen/i.test(heads[hi].textContent)) continue;
+          var top = heads[hi].closest('.e-con.e-parent') || heads[hi].closest('[data-id]');
+          if (top) { anchor = top; break; }
+        }
+        if (!anchor || !anchor.parentNode) return;
+        var mob = isMobile();
+        var n = mob ? 6 : 8;
+        var sec = bag.node(el('section', 'vm-spineband', { 'aria-label': 'Wirbelsäule' }));
+        var inner = el('div', 'vm-sb-inner');
+        var spineCol = el('div', 'vm-sb-spine');
+        spineCol.appendChild(el('div', 'vm-sb-line'));
+        var verts = [];
+        for (var k = 0; k < n; k++) {
+          var vwrap = el('div', 'vm-sb-vert');
+          vwrap.style.setProperty('--i', k);
+          var svg = segSvg('#c3d2c0', mob ? 46 : 64);
+          svg.setAttribute('class', 'sb-seg');
+          vwrap.appendChild(svg);
+          spineCol.appendChild(vwrap);
+          verts.push({ wrap: vwrap, p: svg.firstChild, fill: (k % 2 ? MINT : INK) });
+        }
+        var textCol = el('div', 'vm-sb-text');
+        var h = el('h2', 'vm-sb-h'); h.textContent = 'Wirbel für Wirbel zu Ihrer Genesung';
+        var pgf = el('p', 'vm-sb-p'); pgf.textContent = 'Individuelle Physiotherapie, die Ihren Rücken Schritt für Schritt aufrichtet.';
+        textCol.appendChild(h); textCol.appendChild(pgf);
+        inner.appendChild(spineCol); inner.appendChild(textCol);
+        var dark0 = byId(CFG.darkTopId);
+        var pool = qa('.elementor img').filter(function (im) {
+          return im.offsetWidth > 120 && !(dark0 && dark0.contains(im)) && !anchor.contains(im);
+        });
+        var srcImg = pool.filter(function (im) { return /taping/i.test(im.currentSrc || im.src); })[0] || pool[0];
+        if (srcImg) {
+          var imgCol = el('div', 'vm-sb-imgcol');
+          imgCol.appendChild(el('img', 'vm-sb-img', { src: srcImg.currentSrc || srcImg.src, alt: '', loading: 'lazy' }));
+          inner.appendChild(imgCol);
+        }
+        sec.appendChild(inner);
+        anchor.parentNode.insertBefore(sec, anchor);
+        if (REDUCE) { verts.forEach(function (v) { v.wrap.classList.add('on'); v.p.style.fill = v.fill; }); return; }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var r = sec.getBoundingClientRect(), vh = innerHeight;
+          var prog = (vh * 0.85 - r.top) / (r.height * 0.6 + vh * 0.2);
+          prog = Math.max(0, Math.min(1, prog));
+          var lit = Math.round(prog * n);
+          verts.forEach(function (v, idx) {
+            var on = idx < lit;
+            v.wrap.classList.toggle('on', on);
+            v.p.style.fill = on ? v.fill : '#c3d2c0';
+          });
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
+      } },
+
+    /* Секция-момент по центру (мобайл/планшет): настоящий хребет, собирается при прокрутке через неё. */
+    { key: 'spinesection', label: 'Wirbelsäule-Sektion (Mobil/Tablet, Variante)', labelRu: 'Секция-хребет по центру (мобайл/планшет, вариант)', group: 'Dekor', def: false,
+      build: function (bag) {
+        if (matchMedia('(min-width: 1024px)').matches) return;
+        var anchor = null, heads = qa('.elementor-heading-title');
+        for (var i = 0; i < heads.length; i++) {
+          if (/Rückenschmerzen/i.test(heads[i].textContent)) { anchor = heads[i].closest('.e-con.e-parent') || heads[i].closest('[data-id]'); break; }
+        }
+        if (!anchor || !anchor.parentNode) return;
+        var sec = bag.node(el('section', 'vm-spinesec', { 'aria-hidden': 'true' }));
+        var head = el('div', 'vm-ss-head');
+        var b = el('b'); b.textContent = 'Wirbel für Wirbel zu Ihrer Genesung';
+        var s = el('span'); s.textContent = 'Individuelle Physiotherapie, die Ihren Rücken aufrichtet.';
+        head.appendChild(b); head.appendChild(s);
+        var boxWrap = el('div', 'vm-ss-inner'); var box = el('div', 'vm-ss-spine');
+        var base = el('img', 'ss-base', { src: 'assets/spine-thread.png', alt: '' });
+        var fill = el('img', 'ss-fill', { src: 'assets/spine-thread.png', alt: '' });
+        box.appendChild(base); box.appendChild(fill); boxWrap.appendChild(box);
+        sec.appendChild(head); sec.appendChild(boxWrap);
+        anchor.parentNode.insertBefore(sec, anchor);
+        if (REDUCE) { fill.style.clipPath = 'inset(0 0 0 0)'; return; }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var r = box.getBoundingClientRect(), vh = innerHeight;
+          var p = (vh * 0.8 - r.top) / (r.height + vh * 0.25);
+          p = Math.max(0, Math.min(1, p));
+          fill.style.clipPath = 'inset(0 0 ' + ((1 - p) * 100).toFixed(1) + '% 0)';
+        }
+        var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+        bag.listen(window, 'scroll', onScroll);
+        bag.listen(document, 'scroll', onScroll, { passive: true, capture: true });
+        frame();
+      } },
+
+    /* Хребет фоном за тёмным блоком (мобайл/планшет), сизый (не бирюза). */
+    { key: 'spinebg', label: 'Wirbelsäule als Hintergrund im dunklen Block (Variante)', labelRu: 'Хребет фоном в тёмном блоке (вариант)', group: 'Dekor', def: false,
+      build: function (bag) {
+        if (matchMedia('(min-width: 1024px)').matches) return;
+        var dark = byId(CFG.darkTopId);
+        if (!dark) return;
+        var host = dark.querySelector(':scope > .e-con-inner') || dark;
+        relativize(host);
+        var box = bag.node(el('div', 'vm-ss-bg', { 'aria-hidden': 'true' }));
+        box.appendChild(el('img', null, { src: 'assets/spine-thread-pale.png', alt: '' }));
+        host.appendChild(box);
       } }
   ];
 
