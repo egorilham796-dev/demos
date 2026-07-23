@@ -872,6 +872,97 @@
         var box = bag.node(el('div', 'vm-ss-bg', { 'aria-hidden': 'true' }));
         box.appendChild(el('img', null, { src: 'assets/spine-thread-pale.png', alt: '' }));
         host.appendChild(box);
+      } },
+
+    /* Старые глиф-варианты (тоже сохраняем тумблерами по слову владельца «не только костей»): */
+    /* wirbel — прогресс-хребет из сегментов лого у правого края (тот самый «палка»-вариант). */
+    { key: 'wirbel', label: 'Wirbel-Fortschritt aus Logo-Segmenten (rechts)', labelRu: 'Глиф-хребет из сегментов лого (справа, старый «палка»)', group: 'Dekor', def: false,
+      build: function (bag) {
+        var secs = sections();
+        if (secs.length < 3) return;
+        if (secs.length > 10) secs = secs.slice(0, 10);
+        var slim = matchMedia('(max-width: 1299px)').matches;
+        var box = bag.node(el('div', null, { id: 'vm-wirbel', 'aria-hidden': 'true' }));
+        if (slim) box.classList.add('slim');
+        var w = slim ? 24 : 36;
+        var verts = secs.map(function (sec, i) {
+          var svg = segSvg('#9fb4a1', w);
+          svg.setAttribute('class', 'wb-v');
+          if (!slim) {
+            svg.classList.add('w-click');
+            bag.listen(svg, 'click', function () {
+              scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 16, behavior: 'smooth' });
+            });
+          }
+          box.appendChild(svg);
+          return { svg: svg, p: svg.firstChild, sec: sec, fill: GREENS[i % 4] };
+        });
+        document.body.appendChild(box);
+        if (REDUCE) { verts.forEach(function (v) { v.svg.classList.add('w-done'); v.p.style.fill = v.fill; }); return; }
+        var shyEls = qa('.marquee').concat([byId(CFG.pinId)]).filter(Boolean);
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var line = innerHeight * 0.6;
+          verts.forEach(function (v) {
+            var done = v.sec.getBoundingClientRect().top < line;
+            v.svg.classList.toggle('w-done', done);
+            v.p.style.fill = done ? v.fill : '#9fb4a1';
+          });
+          var br = box.getBoundingClientRect();
+          var shy = shyEls.some(function (s) {
+            var r = s.getBoundingClientRect();
+            return r.bottom > br.top && r.top < br.bottom;
+          });
+          box.classList.toggle('w-shy', shy);
+        }
+        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
+        frame();
+      } },
+
+    /* anatspine — анатомический глиф-хребет с лордоз-изгибом в тёмном блоке (сборка при появлении). */
+    { key: 'anatspine', label: 'Dunkler Block: anatomische Wirbelsäule (Aufbau)', labelRu: 'Тёмный блок: анатомический глиф-хребет (старый)', group: 'Dekor', def: false,
+      build: function (bag) {
+        var dark = byId(CFG.darkTopId);
+        if (!dark) return;
+        var host = dark.querySelector(':scope > .e-con-inner') || dark;
+        relativize(host);
+        bag.cls(document.documentElement, 'vm-m-anatspine');
+        var mob = isMobile();
+        var n = mob ? 6 : 7, W = 140, PAD = 24, STEP = 44, BW = 64, BH = 30, WW = 24, WH = 17;
+        var H = PAD * 2 + (n - 1) * STEP;
+        function ax(t) { return W / 2 + Math.sin(t * Math.PI) * 8; }
+        var svg = el('svg', 'vm-anatspine', { 'aria-hidden': 'true', viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'xMidYMid meet' });
+        for (var i = 0; i < n; i++) {
+          var t = i / (n - 1);
+          var cx = ax(t), cy = PAD + i * STEP;
+          var dp = ax(Math.max(0, t - 1 / (n - 1))), dn = ax(Math.min(1, t + 1 / (n - 1)));
+          var tilt = Math.max(-10, Math.min(10, (dn - dp) * 1.1));
+          var seg = el('g', 'as-seg');
+          seg.style.setProperty('--d', (i * 46) + 'ms');
+          seg.style.setProperty('--w', (i * 60) + 'ms');
+          var inner = el('g', null, { transform: 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') rotate(' + tilt.toFixed(1) + ')' });
+          var lw = el('rect', 'as-wing', { x: -BW / 2 - WW + 7, y: -WH / 2 + 4, width: WW, height: WH, rx: 8, ry: 8 });
+          var rw = el('rect', 'as-wing', { x: BW / 2 - 7, y: -WH / 2 + 4, width: WW, height: WH, rx: 8, ry: 8 });
+          var body = el('rect', 'as-body', { x: -BW / 2, y: -BH / 2, width: BW, height: BH, rx: 12, ry: 12 });
+          inner.appendChild(lw); inner.appendChild(rw); inner.appendChild(body);
+          seg.appendChild(inner); svg.appendChild(seg);
+        }
+        var box = bag.node(el('div', 'vm-anatspine-box', { 'aria-hidden': 'true' }));
+        box.appendChild(svg);
+        host.insertBefore(box, host.firstChild);
+        seenIO(bag, [box], 0);
+        if (REDUCE) return;
+        var waved = false;
+        var wio = bag.io({ threshold: 0.28, cb: function (es) {
+          es.forEach(function (e) {
+            if (!e.isIntersecting || waved) return;
+            waved = true;
+            setTimeout(function () { box.classList.add('as-wave'); }, n * 42 + 520);
+            wio.unobserve(e.target);
+          });
+        } });
+        wio.observe(box);
       } }
   ];
 
