@@ -467,125 +467,9 @@
     /* v6: модуль rings (кольца вокруг цифр 01-05) удалён — круглый мотив отвергнут клиенткой,
        владелец подтвердил снятие 22.07 */
 
-    /* v8: три мелких спайна заменены одним позвоночником-прогрессом (владелец: «мелкий — несерьёзно») */
-    { key: 'wirbel', label: 'Wirbel-Fortschritt aus Logo-Segmenten (rechts)', labelRu: 'Позвоночник-прогресс из сегментов лого (справа)', group: 'Dekor', def: true,
-      build: function (bag) {
-        var secs = sections();
-        if (secs.length < 3) return;
-        if (secs.length > 10) secs = secs.slice(0, 10);
-        var slim = matchMedia('(max-width: 1299px)').matches;
-        var box = bag.node(el('div', null, { id: 'vm-wirbel', 'aria-hidden': 'true' }));
-        if (slim) box.classList.add('slim');
-        var w = slim ? 24 : 36;
-        var verts = secs.map(function (sec, i) {
-          var svg = segSvg('#9fb4a1', w);
-          svg.setAttribute('class', 'wb-v');
-          if (!slim) {
-            svg.classList.add('w-click');
-            bag.listen(svg, 'click', function () {
-              scrollTo({ top: sec.getBoundingClientRect().top + scrollY - 16, behavior: 'smooth' });
-            });
-          }
-          box.appendChild(svg);
-          return { svg: svg, p: svg.firstChild, sec: sec, fill: GREENS[i % 4] };
-        });
-        document.body.appendChild(box);
-        if (REDUCE) { verts.forEach(function (v) { v.svg.classList.add('w-done'); v.p.style.fill = v.fill; }); return; }
-        var shyEls = qa('.marquee').concat([byId(CFG.pinId)]).filter(Boolean);
-        var ticking = false;
-        function frame() {
-          ticking = false;
-          var line = innerHeight * 0.6;
-          verts.forEach(function (v) {
-            var done = v.sec.getBoundingClientRect().top < line;
-            v.svg.classList.toggle('w-done', done);
-            v.p.style.fill = done ? v.fill : '#9fb4a1';
-          });
-          var br = box.getBoundingClientRect();
-          var shy = shyEls.some(function (s) {
-            var r = s.getBoundingClientRect();
-            return r.bottom > br.top && r.top < br.bottom;
-          });
-          box.classList.toggle('w-shy', shy);
-        }
-        bag.listen(window, 'scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } });
-        frame();
-      } },
+    /* Отвергнутые спайн-эксперименты (wirbel/anatspine/spineband и др.) удалены 23.07 по слову
+       владельца — оставлен сквозной хребет spinerail (+ вариант spineback на сравнение). */
 
-    /* v13 (задумка владельца, вариант B): ОДИН хребет-ось по центру, ростом со ВСЮ
-       страницу. Едешь вниз — позвонки загораются, проходя «линию чтения»; к концу сайта
-       собран целиком. Бледный фоновый водяной знак (может прятаться за блоками — так ок).
-       Прогресс от scrollY (smooth двигает реальный скролл). Fixed-слой, вёрстку не трогает. */
-    
-    /* v12 (задумка владельца, правка вёрстки): «разворот-позвоночник» — большой хребет
-       ПО ЦЕНТРУ ЭКРАНА, который целиком собирается при прокрутке. Отдельная высокая секция
-       в потоке (своё скролл-пространство): пока листаешь её, хребет строится позвонок за
-       позвонком на весь экран (fixed-сцена), потом контент продолжается. Ничего не
-       перекрывает — во время «разворота» на экране только хребет. Reduced-motion: не строится. */
-    
-    /* v11 (задумка владельца): ОДИН позвоночник на всю высоту сайта — по позвонку на
-       блок. Нанизан на реальные секции, живёт в пустом поле у левого края (не задевает
-       контент), непрерывная линия-хребет соединяет позвонки. Позвонок «загорается»,
-       когда его блок проходит центр экрана. Fixed-слой, вёрстку не трогает. */
-    
-    /* v9 (тест): крупный «позвоночник» из сегментов лого — ПО ЦЕНТРУ, во всю высоту.
-       При скролле волна активации идёт сверху вниз: позвонки загораются, впереди —
-       яркий бегущий узел. Прогресс берём из позиций секций (устойчиво к smooth-скроллу).
-       Накладной слой (fixed) — вёрстку не трогает. Десктоп-only. Прячет wirbel. */
-    
-    /* v9 (референс: анатомический позвоночник): в тёмном блоке хребет из
-       позвонков с лёгким лордоз-изгибом «собирается» при появлении (один раз).
-       Overlay в декор-зоне слева (не под текстом) — вёрстку не трогает. */
-    { key: 'anatspine', label: 'Dunkler Block: anatomische Wirbelsäule (Aufbau)', labelRu: 'Тёмный блок: анатомический хребет (сборка)', group: 'Dekor', def: false,
-      build: function (bag) {
-        var dark = byId(CFG.darkTopId);
-        if (!dark) return;
-        var host = dark.querySelector(':scope > .e-con-inner') || dark;
-        relativize(host);
-        bag.cls(document.documentElement, 'vm-m-anatspine');
-        var mob = isMobile();
-        var n = mob ? 6 : 7, W = 140, PAD = 24, STEP = 44, BW = 64, BH = 30, WW = 24, WH = 17;
-        var H = PAD * 2 + (n - 1) * STEP;
-        function ax(t) { return W / 2 + Math.sin(t * Math.PI) * 8; }   // очень мягкий лордоз-изгиб
-        var svg = el('svg', 'vm-anatspine', { 'aria-hidden': 'true', viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'xMidYMid meet' });
-        for (var i = 0; i < n; i++) {
-          var t = i / (n - 1);
-          var cx = ax(t), cy = PAD + i * STEP;
-          var dp = ax(Math.max(0, t - 1 / (n - 1))), dn = ax(Math.min(1, t + 1 / (n - 1)));
-          var tilt = Math.max(-10, Math.min(10, (dn - dp) * 1.1));
-          var seg = el('g', 'as-seg');
-          seg.style.setProperty('--d', (i * 46) + 'ms');
-          seg.style.setProperty('--w', (i * 60) + 'ms');
-          var inner = el('g', null, { transform: 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ') rotate(' + tilt.toFixed(1) + ')' });
-          var lw = el('rect', 'as-wing', { x: -BW / 2 - WW + 7, y: -WH / 2 + 4, width: WW, height: WH, rx: 8, ry: 8 });
-          var rw = el('rect', 'as-wing', { x: BW / 2 - 7, y: -WH / 2 + 4, width: WW, height: WH, rx: 8, ry: 8 });
-          var body = el('rect', 'as-body', { x: -BW / 2, y: -BH / 2, width: BW, height: BH, rx: 12, ry: 12 });
-          inner.appendChild(lw); inner.appendChild(rw); inner.appendChild(body);
-          seg.appendChild(inner); svg.appendChild(seg);
-        }
-        var box = bag.node(el('div', 'vm-anatspine-box', { 'aria-hidden': 'true' }));
-        box.appendChild(svg);
-        host.insertBefore(box, host.firstChild);
-        seenIO(bag, [box], 0);
-        if (REDUCE) return;
-        /* после сборки — одноразовая волна активации снизу‑вверх (нервный сигнал) */
-        var waved = false;
-        var wio = bag.io({ threshold: 0.28, cb: function (es) {
-          es.forEach(function (e) {
-            if (!e.isIntersecting || waved) return;
-            waved = true;
-            setTimeout(function () { box.classList.add('as-wave'); }, n * 42 + 520);
-            wio.unobserve(e.target);
-          });
-        } });
-        wio.observe(box);
-      } },
-
-    /* v10 (правка вёрстки, одобрено владельцем): сигнатурная full-bleed секция-хребет.
-       Вставляется в ПОТОК перед блоком 01–05 — своя высота, ничего не перекрывает.
-       Сборка позвонков привязана к скроллу (референс leandra-isler / motionclinic).
-       Для прода: разработчик запекает эту секцию в WordPress/Elementor как есть. */
-    
     { key: 'shapes', label: 'Formen in den Sektionen (Kreuz, Punkte)', labelRu: 'Фигуры по секциям (крест, точки)', group: 'Dekor', def: true,
       build: function (bag) {
         var mob = isMobile();
@@ -804,6 +688,66 @@
         box.appendChild(svg);
         f.appendChild(box);
         seenIO(bag, [box], 0);
+      } },
+
+    /* v11 (23.07, одобрено владельцем): НАСТОЯЩИЙ хребет-прогресс во всю высоту.
+       Ассет сгенерирован в Magnific из выбранного владельцем референса, перекрашен в бренд,
+       фон/кольца выбиты в прозрачность (assets/spine-thread*.png). Фикс-рейл у правого края:
+       бледный «несобранный» хребет + цветной, раскрывающийся сверху вниз по прогрессу скролла
+       (метафора «выравниваем позвоночник»). В тёмном блоке подсветка становится мятной. */
+    { key: 'spinerail', label: 'Wirbelsäule-Fortschritt (echtes Rückgrat, rechts)', labelRu: 'Позвоночник-прогресс (настоящий хребет, справа)', group: 'Dekor', def: true,
+      build: function (bag) {
+        /* v14: сквозной хребет теперь и на мобиле/планшете (владелец: «как на ПК, по всему сайту»).
+           На узких экранах контенту добавляем правый жёлоб, чтобы хребет стоял в поле, не на тексте. */
+        if (matchMedia('(max-width: 1023px)').matches) bag.cls(document.documentElement, 'vm-railgutter');
+        var rail = bag.node(el('div', null, { id: 'vm-spinerail', 'aria-hidden': 'true' }));
+        var base = el('img', 'sr-base', { src: 'assets/spine-thread.png', alt: '' });
+        var fill = el('img', 'sr-fill', { src: 'assets/spine-thread.png', alt: '' });
+        rail.appendChild(base); rail.appendChild(fill);
+        document.body.appendChild(rail);
+        if (REDUCE) { fill.style.clipPath = 'inset(0 0 0 0)'; return; }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var docEl = document.documentElement, body = document.body;
+          var st = window.scrollY || docEl.scrollTop || body.scrollTop || 0;   /* прокрутка живёт то на window, то на body/html */
+          var max = Math.max(docEl.scrollHeight, body.scrollHeight) - innerHeight;
+          var p = max > 0 ? Math.min(1, Math.max(0, st / max)) : 0;
+          var hide = ((1 - p) * 100).toFixed(2) + '%';
+          fill.style.clipPath = 'inset(0 0 ' + hide + ' 0)';
+        }
+        var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+        bag.listen(window, 'scroll', onScroll);
+        bag.listen(document, 'scroll', onScroll, { passive: true, capture: true });   /* ловит скролл на body/html */
+        bag.listen(window, 'resize', onScroll);
+        frame();
+      } },
+
+    /* v15 (вариант на сравнение, 23.07): тот же хребет, но ПО ЦЕНТРУ за контентом, без сужения
+       колонки. Полупрозрачный фикс-слой во всю высоту, контент во всю ширину поверх; собирается
+       на скролле так же. По умолчанию OFF — включается в панели, чтобы сравнить со сквозным рейлом. */
+    { key: 'spineback', label: 'Wirbelsäule mittig hinter dem Inhalt (Variante)', labelRu: 'Хребет по центру за контентом (вариант, без сужения)', group: 'Dekor', def: false,
+      build: function (bag) {
+        var box = bag.node(el('div', null, { id: 'vm-spineback', 'aria-hidden': 'true' }));
+        var base = el('img', 'sb-base', { src: 'assets/spine-thread.png', alt: '' });
+        var fill = el('img', 'sb-fill', { src: 'assets/spine-thread.png', alt: '' });
+        box.appendChild(base); box.appendChild(fill);
+        document.body.appendChild(box);
+        if (REDUCE) { fill.style.clipPath = 'inset(0 0 0 0)'; return; }
+        var ticking = false;
+        function frame() {
+          ticking = false;
+          var docEl = document.documentElement, body = document.body;
+          var st = window.scrollY || docEl.scrollTop || body.scrollTop || 0;
+          var max = Math.max(docEl.scrollHeight, body.scrollHeight) - innerHeight;
+          var p = max > 0 ? Math.min(1, Math.max(0, st / max)) : 0;
+          fill.style.clipPath = 'inset(0 0 ' + ((1 - p) * 100).toFixed(2) + '% 0)';
+        }
+        var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+        bag.listen(window, 'scroll', onScroll);
+        bag.listen(document, 'scroll', onScroll, { passive: true, capture: true });
+        bag.listen(window, 'resize', onScroll);
+        frame();
       } }
   ];
 

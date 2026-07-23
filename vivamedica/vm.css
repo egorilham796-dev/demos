@@ -284,6 +284,92 @@ html.vm-m-darklight [data-id="5a1034bc"] > .e-con-inner { position: relative; z-
 @media (max-width: 767px) { .vm-anatspine-box { left: 2%; top: 14%; height: 62%; opacity: .82; } }
 @media (prefers-reduced-motion: reduce) { .vm-anatspine .as-seg { transition: none; } .vm-anatspine-box.as-wave .as-seg { animation: none; } }
 
+/* ---------- v11: настоящий хребет-прогресс во всю высоту (Magnific-ассет) ---------- */
+#vm-spinerail { position: fixed; top: 0; right: 6px; height: 100vh; z-index: 6; pointer-events: none; }
+#vm-spinerail img { position: absolute; top: 50%; right: 0; transform: translateY(-50%); height: 88vh; width: auto; max-width: none; display: block; }
+#vm-spinerail .sr-base { opacity: .17; }                 /* «несобранный» бледный хребет */
+#vm-spinerail .sr-fill { opacity: .9; transition: none; } /* цветной, раскрывается сверху вниз */
+/* плавающая кнопка WhatsApp должна быть ВЫШЕ хребта, иначе рейл её перекрывает */
+.elementor-element-d498011 { z-index: 30 !important; }
+/* планшет: рейл тоньше, у самого края */
+@media (max-width: 1200px) and (min-width: 1024px) { #vm-spinerail img { height: 72vh; } #vm-spinerail { right: 2px; } }
+/* v14: сквозной хребет и на мобиле/планшете (как на ПК). Контенту даём правый жёлоб,
+   чтобы хребет стоял в поле, не на тексте; фоны секций остаются во всю ширину (хребет над кромкой). */
+@media (max-width: 1023px) {
+  #vm-spinerail { right: 4px; height: 100vh; z-index: 6; }
+  #vm-spinerail img { height: 58vh; max-height: 560px; }   /* max-height, чтобы на высоком планшете ширина не росла */
+  #vm-spinerail .sr-base { opacity: .15; }
+  #vm-spinerail .sr-fill { opacity: .9; }
+  .vm-railgutter .e-con.e-parent { padding-right: 120px !important; }   /* жёлоб шире макс.ширины хребта (~104px) */
+  /* крупные заголовки не влезают в сужённую колонку и лезут в жёлоб — уменьшаем на узких */
+  .vm-railgutter .e-con.e-parent h1, .vm-railgutter .e-con.e-parent h1 * { font-size: clamp(28px, 8vw, 40px) !important; word-break: break-word; }
+}
+@media (prefers-reduced-motion: reduce) { #vm-spinerail .sr-base { opacity: .5; } }
+
+/* v15: вариант «хребет по центру ЗА контентом» — без сужения колонки, полупрозрачный водяной знак */
+#vm-spineback { position: fixed; top: 0; left: 50%; transform: translateX(-50%); height: 100vh; z-index: 4; pointer-events: none; }
+#vm-spineback img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); height: 94vh; width: auto; max-width: none; display: block; }
+#vm-spineback .sb-base { opacity: .05; }
+#vm-spineback .sb-fill { opacity: .13; }
+@media (max-width: 1023px) { #vm-spineback img { height: 70vh; } }
+
+/* ---------- v13: варианты хребта для мобилки/планшета (десктоп их не показывает) ----------
+   A: отдельная секция-момент — хребет по центру, собирается на скролле через неё.
+   B: крупный хребет фоном за спокойной секцией (тёмный блок), тоже собирается. */
+.vm-spinesec { display: none; }
+.vm-ss-bg { display: none; }
+@media (max-width: 1023px) {
+  /* Вариант A — секция-момент */
+  .vm-spinesec { display: block; width: 100%; background: linear-gradient(180deg, #e9f3ee 0%, #f6faf8 60%, #fff 100%); padding: 46px 20px 52px; overflow: hidden; }
+  .vm-ss-head { text-align: center; margin: 0 auto 20px; max-width: 26ch; }
+  .vm-ss-head b { display: block; font-size: 21px; line-height: 1.2; color: #10432d; font-weight: 700; }
+  .vm-ss-head span { display: block; font-size: 14px; color: #3a5346; margin-top: 6px; }
+  .vm-ss-spine { position: relative; height: 56vh; max-height: 460px; margin: 0 auto; width: 96px; }
+  .vm-ss-spine img { position: absolute; top: 0; left: 50%; transform: translateX(-50%); height: 100%; width: auto; max-width: none; display: block; }
+  .vm-ss-spine .ss-base { opacity: .16; }
+  .vm-ss-spine .ss-fill { opacity: .95; }
+
+  /* Вариант B — хребет фоном за тёмным блоком; светлый (сизый) чтобы читался на тёмном, без бирюзы */
+  .vm-ss-bg { display: block; position: absolute; top: 6%; right: 4%; height: 88%; width: auto; z-index: 0; pointer-events: none; opacity: .5; }
+  .vm-ss-bg img { display: block; height: 100%; width: auto; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .vm-ss-spine .ss-fill { clip-path: none !important; } }
+
+/* эмблема в герое */
+.vm-emblem { position: absolute; top: 50%; right: 2%; transform: translateY(-50%); z-index: 0; pointer-events: none; opacity: .5; }
+.vm-emblem img { display: block; height: 62vh; max-height: 460px; width: auto; max-width: none; animation: vm-emblem-breathe 7s ease-in-out infinite; transform-origin: center; }
+@keyframes vm-emblem-breathe { 0%, 100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.025); opacity: 1; } }
+/* мобайл: эмблема уходила под H1 — скрываем, мобайл остаётся чистым (спайн-фичи десктопные) */
+@media (max-width: 767px) { .vm-emblem { display: none; } }
+@media (prefers-reduced-motion: reduce) { .vm-emblem img { animation: none; } }
+
+/* ---------- v10: секция-полоса позвоночника перед блоком Rückenschmerzen ---------- */
+.vm-spineband { width: 100%; background: linear-gradient(180deg, #e9f3ee 0%, #f5faf7 62%, #ffffff 100%); }
+.vm-sb-inner { max-width: 1160px; margin: 0 auto; padding: 64px 64px; display: flex; align-items: center; gap: 60px; }
+.vm-sb-spine { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 10px 24px; }
+.vm-sb-line { position: absolute; top: 18px; bottom: 18px; left: 50%; width: 2px; transform: translateX(-50%); background: linear-gradient(#32dbbe, #10432d); opacity: .22; }
+.vm-sb-vert { position: relative; opacity: 0; transform: translateY(10px) scale(.8); transition: opacity .5s ease, transform .6s cubic-bezier(.34, 1.56, .64, 1); transition-delay: calc(var(--i, 0) * 40ms); }
+.vm-sb-vert.on { opacity: 1; transform: none; }
+.vm-sb-vert .sb-seg { display: block; }
+.vm-sb-vert .sb-seg path { transition: fill .45s ease; }
+.vm-sb-text { flex: 1 1 auto; min-width: 0; }
+.vm-sb-h { font-size: 33px; line-height: 1.15; color: #10432d; margin: 0 0 12px; font-weight: 700; }
+.vm-sb-p { font-size: 17px; line-height: 1.5; color: #3a5346; margin: 0; max-width: 40ch; }
+.vm-sb-imgcol { flex: 0 0 auto; }
+.vm-spineband .vm-sb-img { width: 340px; height: 320px; object-fit: cover; border-radius: 18px; display: block; box-shadow: 0 18px 40px -22px rgba(16, 67, 45, .5); }
+@media (max-width: 1099px) {
+  .vm-spineband .vm-sb-img { width: 260px; height: 300px; }
+}
+@media (max-width: 767px) {
+  .vm-sb-inner { flex-direction: column; align-items: center; text-align: center; gap: 26px; padding: 40px 22px; }
+  .vm-sb-spine { padding: 4px 0; gap: 9px; }
+  .vm-sb-text { text-align: center; }
+  .vm-sb-p { margin: 0 auto; }
+  .vm-sb-h { font-size: 25px; }
+  .vm-spineband .vm-sb-img { width: 100%; max-width: 360px; height: 240px; }
+}
+@media (prefers-reduced-motion: reduce) { .vm-sb-vert { transition: none; } }
+
 /* ---------- фигуры по секциям (порт из fable; v6 — только крест и точки) ---------- */
 .vm-shape { position: absolute; pointer-events: none; z-index: 0; }
 .vm-shape svg { display: block; width: 100%; height: 100%; overflow: visible; }
